@@ -472,12 +472,14 @@ def api_export_excel():
         dataset_name = payload.get('name', 'RawData')
         stats_analyses = payload.get('analyses', [])
         descriptive = payload.get('descriptive', {})
+        charts_plotly = payload.get('charts_plotly')
 
         excel_stream = export.export_excel_workbook(
             dataset_records=dataset_records,
             dataset_name=dataset_name,
             stats_analyses=stats_analyses,
-            descriptive_dict=descriptive
+            descriptive_dict=descriptive,
+            charts_plotly=charts_plotly
         )
 
         return send_file(

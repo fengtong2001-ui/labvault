@@ -227,6 +227,7 @@ export default function Export({ currentProject }) {
             significant: a.result?.summary?.['是否显著'] || '',
             t_statistic: a.result?.summary?.['统计量 t'] ?? '',
           })),
+          charts_plotly: workbook.charts.map((c) => ({ title: c.title || c.chart_type, plotly: c.plotly })),
         };
 
         const res = await exportApi.excel(payload);

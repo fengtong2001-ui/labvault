@@ -474,7 +474,8 @@ def export_excel_workbook(
     dataset_records: Optional[List[Dict[str, Any]]] = None,
     dataset_name: str = "RawData",
     stats_analyses: Optional[List[Dict[str, Any]]] = None,
-    descriptive_dict: Optional[Dict[str, Any]] = None
+    descriptive_dict: Optional[Dict[str, Any]] = None,
+    charts_plotly: Optional[List[Dict[str, Any]]] = None
 ) -> io.BytesIO:
     """
     导出多页签精美 Excel 文件：
@@ -517,5 +518,46 @@ def export_excel_workbook(
             df_analyses = pd.DataFrame(flat_analyses)
             df_analyses.to_excel(writer, sheet_name="Hypothesis_Tests", index=False)
 
+        # 4. 工作簿图表页:已保存图表逐张嵌入(kaleido 渲染 PNG)—— zcode
+        _xl_tmp_files = []
+        if charts_plotly:
+            try:
+                import tempfile
+                from openpyxl.styles import Font
+                from openpyxl.drawing.image import Image as XLImage
+                ws_charts = workbook.create_sheet("Workbook_Charts")
+                ws_charts.sheet_view.showGridLines = False
+                anchor_row = 1
+                for idx, ch in enumerate(charts_plotly):
+                    try:
+                        png_bytes = export_chart_image(
+                            chart_plotly_json=ch.get('plotly') or ch.get('plotly_json') or {},
+                            format='png', width=1000, height=700
+                        )
+                        img_path = os.path.join(tempfile.gettempdir(),
+                                                f"labvault_xlchart_{os.getpid()}_{idx}.png")
+                        with open(img_path, 'wb') as f:
+                            f.write(png_bytes)
+                        _xl_tmp_files.append(img_path)
+                        img = XLImage(img_path)
+                        img.width, img.height = 760, 540
+                        ws_charts.add_image(img, f"A{anchor_row}")
+                        cell = ws_charts.cell(row=anchor_row + 28, column=1,
+                                              value=f"图 {idx + 1}: {ch.get('title', '')}")
+                        cell.font = Font(bold=True, color='1A365D', size=11)
+                        anchor_row += 30
+                    except Exception as ce:
+                        print(f"[export] Excel 图表 {idx + 1} 嵌入失败: {ce}")
+                if anchor_row == 1:  # 一张都没成功则移除空页
+                    workbook.remove(ws_charts)
+            except Exception as e:
+                print(f"[export] Excel 图表页生成失败: {e}")
+
     buffer.seek(0)
+    # 临时图片在 openpyxl 保存(xlsx 写入)后才能删除
+    for p in _xl_tmp_files:
+        try:
+            os.remove(p)
+        except Exception:
+            pass
     return buffer
