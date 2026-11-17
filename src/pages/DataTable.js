@@ -719,6 +719,10 @@ export default function DataTable({ currentProject }) {
                     sx={{
                       minWidth: 160,
                       bgcolor: 'background.tableHeader',
+                      ...(quickStatCol === colIdx ? {
+                        boxShadow: 'inset 0 -2px 0 0 #1565C0',
+                        bgcolor: 'rgba(21,101,192,0.10)',
+                      } : {}),
                       borderRight: '1px solid',
                       borderColor: 'divider',
                       py: 0.5,
@@ -788,6 +792,7 @@ export default function DataTable({ currentProject }) {
                         borderRight: '1px solid',
                         borderColor: 'divider',
                         '&:hover': { bgcolor: 'rgba(21,101,192,0.02)' },
+                        ...(quickStatCol === colIdx ? { bgcolor: 'rgba(21,101,192,0.06)' } : {}),
                       }}
                     >
                       <input
