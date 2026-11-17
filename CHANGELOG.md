@@ -3,6 +3,16 @@
 LabVault — 科研数据管理与统计绘图系统。所有显著更新记录于此。
 格式参考 Keep a Changelog;协作模式:ZCode × Antigravity swarm。
 
+## [0.2.12-alpha] 2026-11-18 第 13 轮(组间均值明细 + 工作簿空态)
+
+### 打磨
+- 快速统计条组间均值升级为逐组 Chip(mean±SD,n=…)
+- 工作簿面板空态引导文案
+- 工作簿聚合 PDF 的 notes 自动含数据集维度
+
+### 详见
+- docs/announcements/2026-11-18-round13.md
+
 ## [0.2.11-alpha] 2026-11-18 第 12 轮(工作簿条目导出 JSON)
 
 ### 新增
