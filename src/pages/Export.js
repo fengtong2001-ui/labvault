@@ -96,11 +96,12 @@ export default function Export({ currentProject }) {
     try {
       const proj = projects.find(p => p.id === selectedProjectId);
       const dsName = currentDatasetData?.name || '实验数据集';
+      const dims = `共 ${(currentDatasetData?.data || []).length} 行 × ${(currentDatasetData?.columns || []).length} 列`;
       const payload = {
         title: `LabVault 工作簿报告 — ${dsName}`,
         project_name: proj ? proj.name : 'LabVault 科研项目',
         dataset_name: dsName,
-        notes: `工作簿聚合报告:分析结果 ${workbook.analyses.length} 条,图表 ${workbook.charts.length} 张(见后续页面)。`,
+        notes: `工作簿聚合报告:分析结果 ${workbook.analyses.length} 条,图表 ${workbook.charts.length} 张(见后续页面)。数据集规模:${dims}。`,
         stats_results: workbook.analyses.map((a) => ({
           test_type: `${a.type}${a.result?.method ? ` · ${a.result.method}` : ''}`,
           conclusion: a.result?.interpretation || a.result?.summary?.['结论'] || '',

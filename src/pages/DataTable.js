@@ -131,6 +131,8 @@ export default function DataTable({ currentProject }) {
       catCol: columns[categorical[0]],
       valCol: columns[numeric[0]],
       means: names.map(n => `${n}=${mean(groups[n]).toFixed(3)}`),
+      details: names.map(n => ({ name: n, n: groups[n].length,
+        mean: mean(groups[n]), sd: sd(groups[n]) })),
     };
   }, [columns, rows]);
 
@@ -645,8 +647,16 @@ export default function DataTable({ currentProject }) {
               <>
                 <Divider orientation="vertical" flexItem sx={{ mx: 1, height: 16 }} />
                 <Typography variant="caption" color="text.secondary">
-                  分组均值({groupCompare.catCol}→{groupCompare.valCol}): {groupCompare.means.join(', ')}
+                  分组均值({groupCompare.catCol}→{groupCompare.valCol}):
                 </Typography>
+                <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                  {groupCompare.details.map(g => (
+                    <Tooltip key={g.name} title={`${g.name}: n=${g.n}, mean±SD`}>
+                      <Chip size="small" variant="outlined" sx={{ fontFamily: 'monospace' }}
+                        label={`${g.name} ${g.mean.toFixed(3)}±${g.sd.toFixed(3)} (n=${g.n})`} />
+                    </Tooltip>
+                  ))}
+                </Stack>
                 <Button size="small" variant="outlined" color="secondary"
                   onClick={() => openWithContext('/statistics')}>
                   按组对比 (t 检验)
@@ -796,7 +806,7 @@ export default function DataTable({ currentProject }) {
       </Dialog>
 
       {/* 工作簿:数据集已保存的分析结果与图表(Prism 式 Results/Graphs)—— zcode */}
-      {selectedDatasetId && (workbook.analyses.length > 0 || workbook.charts.length > 0) && (
+      {selectedDatasetId && (
         <Paper variant="outlined" sx={{ px: 2, py: 1.5 }}>
           <Stack
             direction="row" alignItems="center" justifyContent="space-between"
@@ -807,7 +817,12 @@ export default function DataTable({ currentProject }) {
             </Typography>
             <Chip size="small" label={wbOpen ? '收起' : '展开'} variant="outlined" />
           </Stack>
-          {wbOpen && (
+          {wbOpen && (workbook.analyses.length === 0 && workbook.charts.length === 0) && (
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+              此数据集暂无已保存结果 —— 点上方「以此数据运行统计」或「生成分析图表」,结果会自动保存到这里。
+            </Typography>
+          )}
+          {wbOpen && (workbook.analyses.length > 0 || workbook.charts.length > 0) && (
             <Stack spacing={0.5} sx={{ mt: 1 }}>
               {workbook.charts.map((c) => (
                 <Stack
