@@ -1,0 +1,70 @@
+{
+  "name": "labvault",
+  "version": "0.1.0",
+  "description": "科研数据管理与可视化系统 — 对标 GraphPad Prism",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "react-scripts start",
+    "electron": "electron .",
+    "backend": "python3 backend/server.py",
+    "dev": "concurrently -n \"backend,react,electron\" -c \"blue,green,cyan\" \"python3 backend/server.py\" \"react-scripts start\" \"wait-on http://localhost:3000 && NODE_ENV=development electron .\"",
+    "build": "react-scripts build",
+    "package": "npm run build && electron-builder",
+    "test": "react-scripts test --watchAll=false"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "^5.14.0",
+    "@mui/icons-material": "^5.14.0",
+    "@mui/x-data-grid": "^6.16.0",
+    "@mui/x-date-pickers": "^6.16.0",
+    "axios": "^1.5.0",
+    "chart.js": "^4.4.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-chartjs-2": "^5.2.0",
+    "react-scripts": "5.0.1",
+    "plotly.js": "^2.26.0",
+    "react-plotly.js": "^2.6.0",
+    "react-router-dom": "^6.17.0",
+    "react-dropzone": "^14.2.3",
+    "dayjs": "^1.11.10",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "electron": "^27.0.0",
+    "electron-builder": "^24.6.0",
+    "wait-on": "^7.0.1"
+  },
+  "build": {
+    "appId": "com.labvault.app",
+    "productName": "LabVault",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "build/**/*",
+      "electron/**/*",
+      "backend/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "extraResources": [
+      {
+        "from": "backend",
+        "to": "backend"
+      }
+    ]
+  },
+  "browserslist": {
+    "production": [">0.2%", "not dead", "not op_mini all"],
+    "development": ["last 1 chrome version", "last 1 firefox version", "last 1 safari version"]
+  },
+  "proxy": "http://localhost:5050"
+}
