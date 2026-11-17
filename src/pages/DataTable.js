@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   Box, Typography, Paper, Button, IconButton, TextField, Table,
   TableBody, TableCell, TableContainer, TableHead, TableRow,
@@ -96,6 +96,21 @@ export default function DataTable({ currentProject }) {
   ]);
   const [datasetName, setDatasetName] = useState('未命名数据集');
   const [editingDatasetId, setEditingDatasetId] = useState(null);
+
+  // 未保存改动跟踪:与最近一次 保存/载入 的快照比对 —— zcode
+  const [savedSnapshot, setSavedSnapshot] = useState(null);
+  const snapshotOf = (name, cols, rws) => JSON.stringify([name, cols, rws]);
+  const isDirty = useMemo(() => {
+    if (savedSnapshot === null) return false;
+    return JSON.stringify([datasetName, columns, rows]) !== savedSnapshot;
+  }, [datasetName, columns, rows, savedSnapshot]);
+  useEffect(() => {
+    const handler = (e) => {
+      if (isDirty) { e.preventDefault(); e.returnValue = ''; }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
 
   // 工作簿:当前数据集已保存的分析结果与图表(Prism 式 Results/Graphs)—— zcode
   const [workbook, setWorkbook] = useState({ analyses: [], charts: [] });
@@ -223,6 +238,12 @@ export default function DataTable({ currentProject }) {
         if (Array.isArray(data)) {
           setRows(data.map(r => Array.isArray(r) ? r.map(v => v !== null && v !== undefined ? String(v) : '') : Object.values(r).map(v => String(v))));
         }
+        // 快照基线 = 刚载入的内容(脏状态跟踪)—— zcode
+        setSavedSnapshot(snapshotOf(
+          ds.name || '数据集',
+          (cols && cols.length > 0) ? cols.map(c => typeof c === 'object' ? (c.name || c.field) : String(c)) : columns,
+          Array.isArray(data) ? data.map(r => Array.isArray(r) ? r.map(v => v !== null && v !== undefined ? String(v) : '') : Object.values(r).map(v => String(v))) : rows
+        ));
       })
       .catch((err) => {
         setSnackbar({ open: true, message: `加载详情失败: ${err.message}`, severity: 'warning' });
@@ -235,6 +256,7 @@ export default function DataTable({ currentProject }) {
     setColumns([...template.columns]);
     setRows(template.data.map(row => [...row]));
     setDatasetName(template.name);
+    setSavedSnapshot(snapshotOf(template.name, template.columns, template.data.map(row => [...row])));
     setSnackbar({ open: true, message: `已载入模板：${template.name}`, severity: 'success' });
   };
 
@@ -327,8 +349,16 @@ export default function DataTable({ currentProject }) {
       return;
     }
 
+    // 自动命名:仍为默认名时按 项目名+日期 生成 —— zcode
+    let finalName = (datasetName || '').trim();
+    if (!finalName || finalName === '未命名数据集') {
+      const projName = projects.find(p => p.id === selectedProjectId)?.name || 'LabVault';
+      finalName = `${projName}-数据集-${new Date().toLocaleDateString('sv')}`;
+      setDatasetName(finalName);
+    }
+
     const payload = {
-      name: datasetName,
+      name: finalName,
       columns: columns,
       columns_json: JSON.stringify(columns),
       data: rows,
@@ -342,6 +372,7 @@ export default function DataTable({ currentProject }) {
       if (editingDatasetId) {
         await datasetsApi.update(selectedProjectId, editingDatasetId, payload);
         setSnackbar({ open: true, message: '数据集已更新保存', severity: 'success' });
+        setSavedSnapshot(snapshotOf(finalName, columns, rows));
         loadDatasets(selectedProjectId);
         return editingDatasetId;
       } else {
@@ -350,6 +381,7 @@ export default function DataTable({ currentProject }) {
         setEditingDatasetId(newDs.id);
         setSelectedDatasetId(newDs.id);
         setSnackbar({ open: true, message: '新建数据集保存成功', severity: 'success' });
+        setSavedSnapshot(snapshotOf(finalName, columns, rows));
         loadDatasets(selectedProjectId);
         return newDs.id;
       }
@@ -441,11 +473,14 @@ export default function DataTable({ currentProject }) {
 
           <TextField
             size="small"
-            label="数据集名称"
+            label={`数据集名称${isDirty ? '(有未保存更改)' : ''}`}
             value={datasetName}
             onChange={(e) => setDatasetName(e.target.value)}
             sx={{ width: 220 }}
           />
+          {isDirty && (
+            <Chip size="small" color="warning" variant="outlined" label="● 未保存更改" />
+          )}
         </Stack>
 
         {/* 操作动作 */}
@@ -468,13 +503,13 @@ export default function DataTable({ currentProject }) {
           </Button>
           <Button
             variant="contained"
-            color="primary"
+            color={isDirty ? 'secondary' : 'primary'}
             startIcon={<SaveIcon />}
             onClick={handleSaveDataset}
             disabled={loading}
             size="small"
           >
-            保存表格
+            {isDirty ? '保存表格 *' : '保存表格'}
           </Button>
         </Stack>
       </Paper>
