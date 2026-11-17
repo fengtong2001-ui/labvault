@@ -19,6 +19,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import { useNavigate } from 'react-router-dom';
 import { datasetsApi, projectsApi, importApi, analysesApi, chartsApi } from '../utils/api';
+import { mean, sd } from '../utils/datasetStats';
 import ChartViewer from '../components/ChartViewer';
 import DataImport from '../components/DataImport';
 
@@ -100,6 +101,22 @@ export default function DataTable({ currentProject }) {
   // 未保存改动跟踪:与最近一次 保存/载入 的快照比对 —— zcode
   const [savedSnapshot, setSavedSnapshot] = useState(null);
   const snapshotOf = (name, cols, rws) => JSON.stringify([name, cols, rws]);
+
+  // 快速统计:点列头统计图标,即出该列 n/mean±SD/min/max —— zcode
+  const [quickStatCol, setQuickStatCol] = useState(null);
+  const quickStat = useMemo(() => {
+    const idx = quickStatCol;
+    if (idx === null || idx === undefined || idx >= columns.length) return null;
+    const nums = rows
+      .map(r => {
+        const raw = Array.isArray(r) ? r[idx] : '';
+        return (raw !== '' && raw !== null && raw !== undefined) ? Number(raw) : NaN;
+      })
+      .filter(v => !isNaN(v));
+    if (nums.length === 0) return { empty: true, col: columns[idx] };
+    return { col: columns[idx], n: nums.length, mean: mean(nums), sd: sd(nums),
+             min: Math.min(...nums), max: Math.max(...nums) };
+  }, [quickStatCol, rows, columns]);
   const isDirty = useMemo(() => {
     if (savedSnapshot === null) return false;
     return JSON.stringify([datasetName, columns, rows]) !== savedSnapshot;
@@ -568,6 +585,25 @@ export default function DataTable({ currentProject }) {
             <Button size="small" startIcon={<AddIcon />} onClick={handleAddRow}>
               添加行
             </Button>
+            {quickStat && (
+              <>
+                <Divider orientation="vertical" flexItem sx={{ mx: 1, height: 16 }} />
+                <Chip size="small" color="info" variant="outlined"
+                  label={quickStat.empty ? `${quickStat.col}: 无数值` : `快速统计:${quickStat.col}`}
+                  onDelete={() => setQuickStatCol(null)} />
+                {!quickStat.empty && (
+                  <Stack direction="row" spacing={1.5} alignItems="center">
+                    <Typography variant="caption" fontFamily="monospace">n={quickStat.n}</Typography>
+                    <Typography variant="caption" fontFamily="monospace">
+                      mean={quickStat.mean.toFixed(3)} ± {quickStat.sd.toFixed(3)}
+                    </Typography>
+                    <Typography variant="caption" fontFamily="monospace">
+                      [{quickStat.min}, {quickStat.max}]
+                    </Typography>
+                  </Stack>
+                )}
+              </>
+            )}
           </Stack>
           <Typography variant="caption" color="text.secondary">
             双击单元格或表头即可编辑修改
@@ -603,6 +639,15 @@ export default function DataTable({ currentProject }) {
                           sx: { fontWeight: 600, fontSize: '0.85rem' }
                         }}
                       />
+                      <Tooltip title="快速统计该列 (n / mean±SD)">
+                        <IconButton
+                          size="small"
+                          onClick={() => setQuickStatCol(quickStatCol === colIdx ? null : colIdx)}
+                          sx={{ opacity: 0.5, '&:hover': { opacity: 1 }, ...(quickStatCol === colIdx ? { color: 'primary.main', opacity: 1 } : {}) }}
+                        >
+                          <BarChartIcon fontSize="inherit" />
+                        </IconButton>
+                      </Tooltip>
                       <Tooltip title="删除该列">
                         <IconButton size="small" onClick={() => handleDeleteColumn(colIdx)} sx={{ opacity: 0.5, '&:hover': { opacity: 1 } }}>
                           <DeleteOutlineIcon fontSize="inherit" />
@@ -825,3 +870,5 @@ export default function DataTable({ currentProject }) {
     </Box>
   );
 }
+
+// ZCODE_MARKER_XYZ9182

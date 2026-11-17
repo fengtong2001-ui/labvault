@@ -3,6 +3,19 @@
 LabVault — 科研数据管理与统计绘图系统。所有显著更新记录于此。
 格式参考 Keep a Changelog;协作模式:ZCode × Antigravity swarm。
 
+## [0.2.8-alpha] 2026-11-18 第 9 轮(列级快速统计 + 运行方式切换)
+
+### 新增
+- 数据表格列头快速统计:点 📊 图标即出 n/mean±SD/min/max,随网格实时重算
+- scripts/serve_spa.py:零依赖 SPA 静态服务器
+
+### 修复(工程)
+- CRA5 dev server 在 Node 24 下"编译成功但服务旧内存包"——日常运行切换为
+  生产构建 + serve_spa.py(详见 round9 公告)
+
+### 详见
+- docs/announcements/2026-11-18-round9.md
+
 ## [0.2.7-alpha] 2026-11-18 第 8 轮(数据集保存体验)
 
 ### 新增
