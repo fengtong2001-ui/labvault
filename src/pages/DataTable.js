@@ -18,7 +18,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import { useNavigate } from 'react-router-dom';
-import { datasetsApi, projectsApi, importApi } from '../utils/api';
+import { datasetsApi, projectsApi, importApi, analysesApi, chartsApi } from '../utils/api';
 import DataImport from '../components/DataImport';
 
 // 预设科研模板数据集
@@ -95,6 +95,22 @@ export default function DataTable({ currentProject }) {
   ]);
   const [datasetName, setDatasetName] = useState('未命名数据集');
   const [editingDatasetId, setEditingDatasetId] = useState(null);
+
+  // 工作簿:当前数据集已保存的分析结果与图表(Prism 式 Results/Graphs)—— zcode
+  const [workbook, setWorkbook] = useState({ analyses: [], charts: [] });
+  const [wbOpen, setWbOpen] = useState(true);
+  useEffect(() => {
+    if (!selectedDatasetId) {
+      setWorkbook({ analyses: [], charts: [] });
+      return;
+    }
+    analysesApi.list({ dataset_id: selectedDatasetId })
+      .then((res) => setWorkbook((w) => ({ ...w, analyses: res.data || [] })))
+      .catch(() => {});
+    chartsApi.list({ dataset_id: selectedDatasetId })
+      .then((res) => setWorkbook((w) => ({ ...w, charts: res.data || [] })))
+      .catch(() => {});
+  }, [selectedDatasetId, editingDatasetId]);
 
   // 状态与弹窗
   const [loading, setLoading] = useState(false);
@@ -615,6 +631,42 @@ export default function DataTable({ currentProject }) {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* 工作簿:数据集已保存的分析结果与图表(Prism 式 Results/Graphs)—— zcode */}
+      {selectedDatasetId && (workbook.analyses.length > 0 || workbook.charts.length > 0) && (
+        <Paper variant="outlined" sx={{ px: 2, py: 1.5 }}>
+          <Stack
+            direction="row" alignItems="center" justifyContent="space-between"
+            onClick={() => setWbOpen(!wbOpen)} sx={{ cursor: 'pointer' }}
+          >
+            <Typography variant="body2" fontWeight={600}>
+              工作簿:图表 {workbook.charts.length} · 分析结果 {workbook.analyses.length}
+            </Typography>
+            <Chip size="small" label={wbOpen ? '收起' : '展开'} variant="outlined" />
+          </Stack>
+          {wbOpen && (
+            <Stack spacing={0.5} sx={{ mt: 1 }}>
+              {workbook.charts.map((c) => (
+                <Stack key={`c${c.id}`} direction="row" spacing={1} alignItems="center">
+                  <Chip size="small" color="primary" variant="outlined" label="图" sx={{ minWidth: 32 }} />
+                  <Typography variant="body2">{c.title || c.chart_type}</Typography>
+                  <Typography variant="caption" color="text.secondary">{c.created_at}</Typography>
+                </Stack>
+              ))}
+              {workbook.analyses.map((a) => (
+                <Stack key={`a${a.id}`} direction="row" spacing={1} alignItems="center">
+                  <Chip size="small" color="secondary" variant="outlined" label="析" sx={{ minWidth: 32 }} />
+                  <Typography variant="body2">
+                    {a.type}{a.result?.method ? ` · ${a.result.method}` : ''}
+                    {a.result?.summary?.结论 ? ` · ${a.result.summary.结论}` : ''}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">{a.created_at}</Typography>
+                </Stack>
+              ))}
+            </Stack>
+          )}
+        </Paper>
+      )}
 
       {/* 文件导入弹窗 */}
       <Dialog open={importDialogOpen} onClose={() => setImportDialogOpen(false)} maxWidth="sm" fullWidth>

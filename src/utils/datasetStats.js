@@ -111,6 +111,62 @@ export function chartParamsFromDataset(ds, chartType, meta = {}) {
     }
     return null;
   }
+  // 特殊科研图型:按列名语义识别(浓度-效应 / 时间-事件 / 标签-评分)—— zcode
+  // 这三类是"先统计后画图"两段式:返回 __statEndpoint + payload,由调用方先走 stats API
+  if (chartType === 'ic50') {
+    const colIdx = findColByNames(columns, ['浓度', 'concentration', 'conc', '剂量', 'dose', 'inhibitor'])
+      ?? (numeric.length >= 1 ? numeric[0] : null);
+    const respIdx = findColByNames(columns, ['抑制率', '响应', 'response', '活性', 'viability', '效应'])
+      ?? (numeric.length >= 2 ? numeric[1] : null);
+    if (colIdx !== null && respIdx !== null) {
+      const x = data.map((r) => toNum(Array.isArray(r) ? r[colIdx] : r?.[colIdx])).filter((v) => !isNaN(v));
+      const y = data.map((r) => toNum(Array.isArray(r) ? r[respIdx] : r?.[respIdx])).filter((v) => !isNaN(v));
+      if (x.length >= 4 && x.length === y.length) {
+        return { __statEndpoint: 'ic50', payload: { x, y } };
+      }
+    }
+    return null;
+  }
+  if (chartType === 'survival') {
+    const timeIdx = findColByNames(columns, ['时间', 'time', '月', 'months', 'days', '随访']);
+    const eventIdx = findColByNames(columns, ['事件', 'event', 'status', '终点', '结局']);
+    const groupIdx = categorical.length ? categorical[0] : findColByNames(columns, ['组', 'group', 'treatment']);
+    if (timeIdx !== null && eventIdx !== null) {
+      const duration = data.map((r) => toNum(Array.isArray(r) ? r[timeIdx] : r?.[timeIdx])).filter((v) => !isNaN(v));
+      const event = data.map((r) => toNum(Array.isArray(r) ? r[eventIdx] : r?.[eventIdx])).filter((v) => !isNaN(v));
+      const groups = groupIdx !== null && groupIdx !== timeIdx && groupIdx !== eventIdx
+        ? data.map((r) => String(Array.isArray(r) ? r[groupIdx] : r?.[groupIdx] ?? '全部'))
+        : undefined;
+      if (duration.length && duration.length === event.length) {
+        return { __statEndpoint: 'survival', payload: { type: 'kaplan_meier', duration, event, ...(groups ? { groups } : {}) } };
+      }
+    }
+    return null;
+  }
+  if (chartType === 'roc') {
+    const labelIdx = findColByNames(columns, ['标签', 'label', '组别', '诊断', '金标准', 'true', 'y_true', '患病'])
+      ?? (categorical.length ? categorical[0] : null);
+    const scoreIdx = findColByNames(columns, ['评分', 'score', '概率', 'probability', '预测值', 'y_score'])
+      ?? (numeric.length ? numeric[numeric.length - 1] : null);
+    if (labelIdx !== null && scoreIdx !== null && labelIdx !== scoreIdx) {
+      const yTrue = data.map((r) => toNum(Array.isArray(r) ? r[labelIdx] : r?.[labelIdx])).filter((v) => !isNaN(v));
+      const yScore = data.map((r) => toNum(Array.isArray(r) ? r[scoreIdx] : r?.[scoreIdx])).filter((v) => !isNaN(v));
+      if (yTrue.length >= 4 && yTrue.length === yScore.length) {
+        return { __statEndpoint: 'roc', payload: { y_true: yTrue, y_score: yScore } };
+      }
+    }
+    return null;
+  }
+  return null;
+}
+
+/** 按候选关键词(不区分大小写)找列下标,找不到返回 null */
+function findColByNames(columns, keywords) {
+  if (!columns?.length) return null;
+  for (const kw of keywords) {
+    const i = columns.findIndex((c) => String(c).toLowerCase().includes(kw.toLowerCase()));
+    if (i >= 0) return i;
+  }
   return null;
 }
 

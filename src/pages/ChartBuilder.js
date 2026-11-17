@@ -15,7 +15,7 @@ import ScatterPlotIcon from '@mui/icons-material/ScatterPlot';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import AnalyticsIcon from '@mui/icons-material/Analytics';
 import PieChartIcon from '@mui/icons-material/PieChart';
-import { chartsApi, datasetsApi, projectsApi, exportApi, downloadBlob } from '../utils/api';
+import { chartsApi, statsApi, datasetsApi, projectsApi, exportApi, downloadBlob } from '../utils/api';
 import { useSearchParams } from 'react-router-dom';
 import { chartParamsFromDataset, loadDataset } from '../utils/datasetStats';
 import ChartViewer from '../components/ChartViewer';
@@ -240,7 +240,15 @@ export default function ChartBuilder({ currentProject }) {
         ? chartParamsFromDataset(currentDataset, chartType, { title, xLabel, yLabel, barmode })
         : null;
       setDataSourceLabel(realParams ? `数据集:${currentDataset.name}` : '演示数据');
-      const params = realParams || buildParams();
+      let params = realParams || buildParams();
+      // 特殊图型(ic50/survival/roc)是"先统计后画图"两段式
+      if (params && params.__statEndpoint) {
+        const st = await statsApi[params.__statEndpoint](params.payload);
+        if (st.error) throw new Error(st.error);
+        const result = st.result || st;
+        const wrapKey = { ic50: 'ic50_result', survival: 'survival_result', roc: 'roc_result' }[params.__statEndpoint];
+        params = { chart_type: chartType, [wrapKey]: result, title, x_label: xLabel, y_label: yLabel };
+      }
       const res = await chartsApi.generate(params);
       if (res.error) {
         throw new Error(res.error);
