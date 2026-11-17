@@ -3,6 +3,19 @@
 LabVault — 科研数据管理与统计绘图系统。所有显著更新记录于此。
 格式参考 Keep a Changelog;协作模式:ZCode × Antigravity swarm。
 
+## [0.2.5-alpha] 2026-11-18 第 6 轮(工作簿聚合 PDF 报告)
+
+### 新增
+- Export 页「导出工作簿报告」:聚合数据集下全部已落库分析与图表,
+  charts_plotly 每张独立一页(kaleido 渲染)
+- `export_pdf_report` 新增 charts_plotly 参数
+
+### 修复
+- Export 页普通 PDF 导出的假统计/假表格 → 使用当前数据集真实预览
+
+### 详见
+- docs/announcements/2026-11-18-round6.md
+
 ## [0.2.4-alpha] 2026-11-18 第 5 轮(双向关联 + 主题持久化)
 
 ### 新增
