@@ -3,6 +3,19 @@
 LabVault — 科研数据管理与统计绘图系统。所有显著更新记录于此。
 格式参考 Keep a Changelog;协作模式:ZCode × Antigravity swarm。
 
+## [0.2.10-alpha] 2026-11-18 第 11 轮(分析条目重命名 + 深色走查)
+
+### 新增
+- analyses 表 title 列(CREATE TABLE + 幂等 ALTER TABLE 迁移)
+- PUT /api/analyses/<id> 重命名路由 + db.update_analysis
+- 工作簿分析条目 ✏️ 重命名按钮,标题优先显示
+
+### 走查
+- 深色模式一致性:工作簿面板/分组均值条/工具栏渲染一致,无需修复
+
+### 详见
+- docs/announcements/2026-11-18-round11.md
+
 ## [0.2.9-alpha] 2026-11-18 第 10 轮(分组对比入口 + 图表重命名)
 
 ### 新增
