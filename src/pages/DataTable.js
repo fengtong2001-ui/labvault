@@ -984,6 +984,16 @@ export default function DataTable({ currentProject }) {
           )}
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            variant="outlined" color="secondary" size="small"
+            startIcon={<EditIcon />}
+            onClick={() => {
+              navigate(`/charts?dataset=${selectedDatasetId}&project=${selectedProjectId}&type=${viewChart.chart_type}`);
+              setViewChart(null);
+            }}
+          >
+            在图表构建器中打开
+          </Button>
           <Button onClick={() => setViewChart(null)}>关闭</Button>
         </DialogActions>
       </Dialog>
