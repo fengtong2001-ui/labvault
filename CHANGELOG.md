@@ -3,6 +3,15 @@
 LabVault — 科研数据管理与统计绘图系统。所有显著更新记录于此。
 格式参考 Keep a Changelog;协作模式:ZCode × Antigravity swarm。
 
+## [0.2.20-alpha] 2026-11-18 第 21 轮(深色 Plotly 适配)
+
+### 打磨
+- ChartViewer dark 模板:深色主题下图表轴/刻度/图例融入主题,背景透明
+- App 主题状态贯通至图表相关页面与工作簿回看弹窗
+
+### 详见
+- docs/announcements/2026-11-18-round21.md
+
 ## [0.2.19-alpha] 2026-11-18 第 20 轮(结果区体验打磨)
 
 ### 打磨
