@@ -672,6 +672,16 @@ export default function DataTable({ currentProject }) {
                       {a.result?.summary?.结论 ? ` · ${a.result.summary.结论}` : ''}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">{a.created_at}</Typography>
+                    <Button
+                      size="small" variant="outlined" color="secondary"
+                      startIcon={<BarChartIcon />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/charts?dataset=${selectedDatasetId}&project=${selectedProjectId}&analysis=${a.id}`);
+                      }}
+                    >
+                      从该分析出图
+                    </Button>
                   </Stack>
                   {expandedAnalysis === a.id && a.result?.summary && (
                     <Box sx={{ ml: 5, mt: 0.5, p: 1, bgcolor: 'action.hover', borderRadius: 1 }}>

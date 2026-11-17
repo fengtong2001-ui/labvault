@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, CssBaseline, Box } from '@mui/material';
 import { lightTheme, darkTheme } from './theme';
@@ -17,8 +17,15 @@ import Export from './pages/Export';
 const SIDEBAR_WIDTH = 220;
 
 function App() {
-  const [isDark, setIsDark] = useState(false);
+  // 主题偏好持久化:刷新/重开不再回退浅色 —— zcode
+  const [isDark, setIsDark] = useState(() => {
+    try { return localStorage.getItem('labvault-theme') === 'dark'; } catch { return false; }
+  });
   const [currentProject, setCurrentProject] = useState(null);
+
+  useEffect(() => {
+    try { localStorage.setItem('labvault-theme', isDark ? 'dark' : 'light'); } catch {}
+  }, [isDark]);
 
   const theme = isDark ? darkTheme : lightTheme;
 

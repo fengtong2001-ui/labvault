@@ -3,6 +3,15 @@
 LabVault — 科研数据管理与统计绘图系统。所有显著更新记录于此。
 格式参考 Keep a Changelog;协作模式:ZCode × Antigravity swarm。
 
+## [0.2.4-alpha] 2026-11-18 第 5 轮(双向关联 + 主题持久化)
+
+### 新增
+- 工作簿分析条目「从该分析出图」:历史分析一键跳转图表页并自动挂钩 analysis_id
+- 主题偏好持久化(localStorage),刷新/重开不再回退浅色
+
+### 详见
+- docs/announcements/2026-11-18-round5.md
+
 ## [0.2.3-alpha] 2026-11-18 第 4 轮(工作簿回看 + 关联链)
 
 ### 新增
