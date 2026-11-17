@@ -3,6 +3,17 @@
 LabVault — 科研数据管理与统计绘图系统。所有显著更新记录于此。
 格式参考 Keep a Changelog;协作模式:ZCode × Antigravity swarm。
 
+## [0.2.14-alpha] 2026-11-18 第 15 轮(导出页数据预览 + 页码清理)
+
+### 新增
+- Export 页当前数据集预览表(名称/维度 Chip/前 6 行真实数据)
+
+### 修复
+- 移除 matplotlib PDF 路径硬编码的误导性页码
+
+### 详见
+- docs/announcements/2026-11-18-round15.md
+
 ## [0.2.13-alpha] 2026-11-18 第 14 轮(快速统计联动 + PDF 预览打磨)
 
 ### 打磨
