@@ -12,9 +12,10 @@ import BarChartIcon from '@mui/icons-material/BarChart';
 import ScienceIcon from '@mui/icons-material/Science';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import DownloadIcon from '@mui/icons-material/Download';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { loadDataset, ttestFromDataset } from '../utils/datasetStats';
-import { statsApi, datasetsApi, projectsApi, analysesApi } from '../utils/api';
+import { statsApi, datasetsApi, projectsApi, analysesApi, downloadBlob } from '../utils/api';
 import StatResults from '../components/StatResults';
 
 // 统计方法定义
@@ -336,6 +337,22 @@ export default function Statistics({ currentProject }) {
     navigate(`/charts?dataset=${datasetId}&project=${pid}${savedAnalysisId ? `&analysis=${savedAnalysisId}` : ''}`);
   };
 
+  // 导出本次结果 JSON(可复现)—— zcode
+  const exportResultJson = () => {
+    if (!results) return;
+    const payload = {
+      _export: 'labvault-result@v1',
+      analysis_type: method,
+      params: { ttestType, alpha, g1: ttestG1, g2: ttestG2, dataset_source: datasetSource },
+      result: results,
+      dataset_id: datasetId,
+      saved_analysis_id: savedAnalysisId,
+      generated_at: new Date().toLocaleString('sv'),
+    };
+    downloadBlob(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }),
+      `labvault-result-${method}-${Date.now()}.json`);
+  };
+
   return (
     <Box sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
       {/* 顶部标题栏 */}
@@ -376,6 +393,16 @@ export default function Statistics({ currentProject }) {
               size="small"
             >
               生成关联图表
+            </Button>
+          )}
+          {results && (
+            <Button
+              variant="outlined"
+              startIcon={<DownloadIcon />}
+              onClick={exportResultJson}
+              size="small"
+            >
+              导出结果 JSON
             </Button>
           )}
           <Button

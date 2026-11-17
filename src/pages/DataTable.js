@@ -14,6 +14,7 @@ import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import EditIcon from '@mui/icons-material/Edit';
 import DownloadIcon from '@mui/icons-material/Download';
+import TableChartIcon from '@mui/icons-material/TableChart';
 import CalculateIcon from '@mui/icons-material/Calculate';
 import ScienceIcon from '@mui/icons-material/Science';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -216,6 +217,16 @@ export default function DataTable({ currentProject }) {
     };
     downloadBlob(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }),
       `labvault-analysis-${a.id}.json`);
+  };
+
+  // 导出 CSV(摘要表,带 BOM 便于 Excel 直开)—— zcode
+  const exportAnalysisCsv = (a) => {
+    const summary = a.result?.summary || {};
+    const lines = [['指标', '数值 / 描述'],
+      ...Object.entries(summary).map(([k, v]) => [k, String(v)])];
+    const csv = '\ufeff' + lines.map(l => l.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }),
+      `labvault-analysis-${a.id}-summary.csv`);
   };
   const exportChartJson = (c) => {
     const payload = {
@@ -895,6 +906,11 @@ export default function DataTable({ currentProject }) {
                       {a.result?.summary?.结论 ? ` · ${a.result.summary.结论}` : ''}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">{a.created_at}</Typography>
+                    <Tooltip title="导出 CSV(摘要表,Excel 直开)">
+                      <IconButton size="small" onClick={(e) => { e.stopPropagation(); exportAnalysisCsv(a); }}>
+                        <TableChartIcon sx={{ fontSize: 15 }} />
+                      </IconButton>
+                    </Tooltip>
                     <Tooltip title="导出 JSON(可复现分析记录)">
                       <IconButton size="small" onClick={(e) => { e.stopPropagation(); exportAnalysisJson(a); }}>
                         <DownloadIcon sx={{ fontSize: 15 }} />
