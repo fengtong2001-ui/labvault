@@ -82,19 +82,19 @@ function App() {
               />
               <Route
                 path="/data"
-                element={<DataTable currentProject={currentProject} />}
+                element={<DataTable currentProject={currentProject} isDark={isDark} />}
               />
               <Route
                 path="/charts"
-                element={<ChartBuilder currentProject={currentProject} />}
+                element={<ChartBuilder currentProject={currentProject} isDark={isDark} />}
               />
               <Route
                 path="/statistics"
-                element={<Statistics currentProject={currentProject} />}
+                element={<Statistics currentProject={currentProject} isDark={isDark} />}
               />
               <Route
                 path="/export"
-                element={<Export currentProject={currentProject} />}
+                element={<Export currentProject={currentProject} isDark={isDark} />}
               />
             </Routes>
           </Box>

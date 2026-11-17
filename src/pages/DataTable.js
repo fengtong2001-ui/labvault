@@ -82,7 +82,7 @@ const SAMPLE_TEMPLATES = [
   }
 ];
 
-export default function DataTable({ currentProject }) {
+export default function DataTable({ currentProject, isDark = false }) {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [searchParams] = useSearchParams();
@@ -985,6 +985,7 @@ export default function DataTable({ currentProject }) {
               layout={viewChart.plotly?.layout || {}}
               title=""
               height={420}
+              dark={isDark}
             />
           )}
         </DialogContent>

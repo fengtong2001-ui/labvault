@@ -45,6 +45,7 @@ export default function ChartViewer({
   onRefresh,
   onDownload,
   showToolbar = true,
+  dark = false,
 }) {
   const plotRef = useRef(null);
 
@@ -54,6 +55,17 @@ export default function ChartViewer({
     title: title
       ? { text: title, font: { size: 15, family: "'Inter', sans-serif" } }
       : layout.title,
+    // 深色模板:覆盖在用户 layout 之上(跟随主题)—— zcode
+    ...(dark ? {
+      font: { family: "'Inter', sans-serif", size: 13, color: '#E0E0E0' },
+      paper_bgcolor: 'rgba(0,0,0,0)',
+      plot_bgcolor: 'rgba(0,0,0,0)',
+      xaxis: { ...(layout.xaxis || {}), gridcolor: 'rgba(255,255,255,0.12)',
+               zerolinecolor: 'rgba(255,255,255,0.25)', tickfont: { color: '#B0B8C4' } },
+      yaxis: { ...(layout.yaxis || {}), gridcolor: 'rgba(255,255,255,0.12)',
+               zerolinecolor: 'rgba(255,255,255,0.25)', tickfont: { color: '#B0B8C4' } },
+      legend: { ...(layout.legend || DEFAULT_LAYOUT.legend), font: { color: '#B0B8C4', size: 11 } },
+    } : {}),
   };
 
   const handleFullscreen = () => {

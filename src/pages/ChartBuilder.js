@@ -33,7 +33,7 @@ const CHART_TYPES = [
   { id: 'histogram', label: '直方图 (Histogram)', icon: <BarChartIcon fontSize="small" />, desc: '频数分布' },
 ];
 
-export default function ChartBuilder({ currentProject }) {
+export default function ChartBuilder({ currentProject, isDark = false }) {
   const [searchParams] = useSearchParams();
   const [projects, setProjects] = useState([]);
   const [selectedProjectId, setSelectedProjectId] = useState(searchParams.get('project') || currentProject?.id || '');
@@ -474,6 +474,7 @@ export default function ChartBuilder({ currentProject }) {
                 error={error}
                 height={480}
                 onRefresh={handleGenerate}
+                dark={isDark}
               />
             </Box>
           </Paper>
