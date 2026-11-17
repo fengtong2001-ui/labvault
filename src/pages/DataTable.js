@@ -926,16 +926,6 @@ export default function DataTable({ currentProject, isDark = false }) {
                       {a.result?.summary?.结论 ? ` · ${a.result.summary.结论}` : ''}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">{a.created_at}</Typography>
-                    <Tooltip title="导出 CSV(摘要表,Excel 直开)">
-                      <IconButton size="small" onClick={(e) => { e.stopPropagation(); exportAnalysisCsv(a); }}>
-                        <TableChartIcon sx={{ fontSize: 15 }} />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="导出 JSON(可复现分析记录)">
-                      <IconButton size="small" onClick={(e) => { e.stopPropagation(); exportAnalysisJson(a); }}>
-                        <DownloadIcon sx={{ fontSize: 15 }} />
-                      </IconButton>
-                    </Tooltip>
                     <Tooltip title="重命名分析">
                       <IconButton size="small" onClick={(e) => {
                         e.stopPropagation();
@@ -947,6 +937,16 @@ export default function DataTable({ currentProject, isDark = false }) {
                         }
                       }}>
                         <EditIcon sx={{ fontSize: 15 }} />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="导出 CSV(摘要表,Excel 直开)">
+                      <IconButton size="small" onClick={(e) => { e.stopPropagation(); exportAnalysisCsv(a); }}>
+                        <TableChartIcon sx={{ fontSize: 15 }} />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="导出 JSON(可复现分析记录)">
+                      <IconButton size="small" onClick={(e) => { e.stopPropagation(); exportAnalysisJson(a); }}>
+                        <DownloadIcon sx={{ fontSize: 15 }} />
                       </IconButton>
                     </Tooltip>
                     <Button
