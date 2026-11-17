@@ -269,6 +269,28 @@ def delete_chart(chart_id: int) -> bool:
     conn.close()
     return affected > 0
 
+
+def update_chart(chart_id: int, title: str = None, plotly_json: dict = None) -> dict | None:
+    """更新图表标题/数据(由 ZCode 添加:工作簿重命名)"""
+    conn = get_conn()
+    row = conn.execute("SELECT * FROM charts WHERE id = ?", (chart_id,)).fetchone()
+    if not row:
+        conn.close()
+        return None
+    d = dict(row)
+    new_title = title if title is not None else d.get('title')
+    new_plotly = json.dumps(plotly_json, ensure_ascii=False) if plotly_json is not None else d.get('plotly_json')
+    conn.execute(
+        "UPDATE charts SET title = ?, plotly_json = ? WHERE id = ?",
+        (new_title, new_plotly, chart_id)
+    )
+    conn.commit()
+    out = conn.execute("SELECT * FROM charts WHERE id = ?", (chart_id,)).fetchone()
+    conn.close()
+    d2 = dict(out)
+    d2['plotly'] = json.loads(d2.pop('plotly_json') or '{}')
+    return d2
+
 def save_analysis(analysis_type: str, params: dict, result: dict,
                   dataset_id: int = None, project_id: int = None) -> dict:
     """保存分析结果"""

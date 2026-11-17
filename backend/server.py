@@ -560,16 +560,28 @@ def api_charts():
                     "data": db.list_charts(project_id=proj_id, dataset_id=ds_id)})
 
 
-@app.route('/api/charts/<int:chart_id>', methods=['DELETE'])
-def api_delete_chart(chart_id: int):
-    """删除图表 —— 由 ZCode 添加(工作簿条目管理)"""
-    try:
+@app.route('/api/charts/<int:chart_id>', methods=['PUT', 'DELETE'])
+def api_single_chart(chart_id: int):
+    """PUT: 重命名/更新图表 —— 由 ZCode 添加(工作簿重命名);DELETE: 删除"""
+    if request.method == 'PUT':
+        try:
+            payload = request.get_json(force=True) or {}
+            chart = db.update_chart(
+                chart_id,
+                title=payload.get('title'),
+                plotly_json=payload.get('plotly_json'),
+            )
+            if not chart:
+                return jsonify({"error": "图表不存在"}), 404
+            return jsonify({"status": "success", "data": chart})
+        except Exception as e:
+            logger.error(f"更新图表失败: {e}")
+            return jsonify({"error": str(e)}), 500
+
+    elif request.method == 'DELETE':
         if not db.delete_chart(chart_id):
             return jsonify({"error": "图表不存在"}), 404
         return jsonify({"status": "success", "message": "图表已删除"})
-    except Exception as e:
-        logger.error(f"删除图表失败: {e}")
-        return jsonify({"error": str(e)}), 500
 
 
 # ─── 主服务启动 ───────────────────────────────────────────────────────────────

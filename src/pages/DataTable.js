@@ -12,6 +12,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import SaveIcon from '@mui/icons-material/Save';
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import EditIcon from '@mui/icons-material/Edit';
 import CalculateIcon from '@mui/icons-material/Calculate';
 import ScienceIcon from '@mui/icons-material/Science';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -19,7 +20,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import { useNavigate } from 'react-router-dom';
 import { datasetsApi, projectsApi, importApi, analysesApi, chartsApi } from '../utils/api';
-import { mean, sd } from '../utils/datasetStats';
+import { mean, sd, classifyColumns, groupValues } from '../utils/datasetStats';
 import ChartViewer from '../components/ChartViewer';
 import DataImport from '../components/DataImport';
 
@@ -117,6 +118,21 @@ export default function DataTable({ currentProject }) {
     return { col: columns[idx], n: nums.length, mean: mean(nums), sd: sd(nums),
              min: Math.min(...nums), max: Math.max(...nums) };
   }, [quickStatCol, rows, columns]);
+
+  // 分组均值(分类列→数值列):Prism 式组间对比入口 —— zcode
+  const groupCompare = useMemo(() => {
+    const { categorical, numeric } = classifyColumns(columns, rows);
+    if (!categorical.length || !numeric.length) return null;
+    const groups = groupValues(rows, categorical[0], numeric[0]);
+    const names = Object.keys(groups);
+    if (names.length < 2) return null;
+    return {
+      catCol: columns[categorical[0]],
+      valCol: columns[numeric[0]],
+      means: names.map(n => `${n}=${mean(groups[n]).toFixed(3)}`),
+    };
+  }, [columns, rows]);
+
   const isDirty = useMemo(() => {
     if (savedSnapshot === null) return false;
     return JSON.stringify([datasetName, columns, rows]) !== savedSnapshot;
@@ -604,6 +620,18 @@ export default function DataTable({ currentProject }) {
                 )}
               </>
             )}
+            {groupCompare && (
+              <>
+                <Divider orientation="vertical" flexItem sx={{ mx: 1, height: 16 }} />
+                <Typography variant="caption" color="text.secondary">
+                  分组均值({groupCompare.catCol}→{groupCompare.valCol}): {groupCompare.means.join(', ')}
+                </Typography>
+                <Button size="small" variant="outlined" color="secondary"
+                  onClick={() => openWithContext('/statistics')}>
+                  按组对比 (t 检验)
+                </Button>
+              </>
+            )}
           </Stack>
           <Typography variant="caption" color="text.secondary">
             双击单元格或表头即可编辑修改
@@ -768,6 +796,19 @@ export default function DataTable({ currentProject }) {
                   <Chip size="small" color="primary" variant="outlined" label="图" sx={{ minWidth: 32 }} />
                   <Typography variant="body2">{c.title || c.chart_type}</Typography>
                   <Typography variant="caption" color="text.secondary">{c.created_at}</Typography>
+                  <Tooltip title="重命名图表">
+                    <IconButton size="small" onClick={(e) => {
+                      e.stopPropagation();
+                      const t = window.prompt('图表新标题:', c.title || c.chart_type);
+                      if (t && t.trim() && t.trim() !== c.title) {
+                        chartsApi.rename(c.id, t.trim())
+                          .then(() => { setSnackbar({ open: true, message: '图表已重命名', severity: 'success' }); refreshWorkbook(selectedDatasetId); })
+                          .catch((err) => setSnackbar({ open: true, message: `重命名失败: ${err.message}`, severity: 'error' }));
+                      }
+                    }}>
+                      <EditIcon sx={{ fontSize: 15 }} />
+                    </IconButton>
+                  </Tooltip>
                   <Tooltip title="以此数据集与图型重新生成">
                     <IconButton size="small" onClick={(e) => handleRegenerateChart(e, c)}>
                       <RefreshIcon sx={{ fontSize: 15 }} />

@@ -142,6 +142,9 @@ export const chartsApi = {
 
   /** 删除图表 —— zcode */
   delete: (id) => api.delete(`/api/charts/${id}`),
+
+  /** 重命名图表 —— zcode */
+  rename: (id, title) => api.put(`/api/charts/${id}`, { title }),
 };
 
 // ─────────────────────────────────────────────
