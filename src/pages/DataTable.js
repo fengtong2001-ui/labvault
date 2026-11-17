@@ -640,7 +640,7 @@ export default function DataTable({ currentProject, isDark = false }) {
       <Paper variant="outlined" sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* 表格操作栏 */}
         <Box sx={{ px: 2, py: 1, bgcolor: 'background.tableHeader', borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Stack direction="row" spacing={1} alignItems="center">
+          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" rowGap={0.5}>
             <Typography variant="caption" fontWeight={600} color="text.secondary">
               当前规模: {rows.length} 行 × {columns.length} 列
             </Typography>
