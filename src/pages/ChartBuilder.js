@@ -41,6 +41,7 @@ export default function ChartBuilder({ currentProject }) {
   const [selectedDatasetId, setSelectedDatasetId] = useState(searchParams.get('dataset') || '');
   const [currentDataset, setCurrentDataset] = useState(null);
   const [autoTried, setAutoTried] = useState(false);
+  const linkedAnalysisId = searchParams.get('analysis');
 
   // 图表配置
   const [chartType, setChartType] = useState('bar');
@@ -68,6 +69,7 @@ export default function ChartBuilder({ currentProject }) {
         title: title || '未命名图表',
         dataset_id: selectedDatasetId ? Number(selectedDatasetId) : null,
         project_id: selectedProjectId ? Number(selectedProjectId) : null,
+        analysis_id: linkedAnalysisId ? Number(linkedAnalysisId) : null,
       });
       setSavedMsg('已保存 ✓');
       setTimeout(() => setSavedMsg(null), 3000);
@@ -90,14 +92,14 @@ export default function ChartBuilder({ currentProject }) {
       .catch(() => {});
   }, [selectedProjectId]);
 
-  // 加载数据集列表
+  // 加载数据集列表(URL ?dataset= 指定时优先,不自动覆盖 —— zcode)
   useEffect(() => {
     if (!selectedProjectId) return;
     datasetsApi.list(selectedProjectId)
       .then((res) => {
         const list = Array.isArray(res) ? res : res.data || res.datasets || [];
         setDatasets(list);
-        if (list.length > 0) {
+        if (list.length > 0 && !searchParams.get('dataset') && !selectedDatasetId) {
           setSelectedDatasetId(list[0].id);
         }
       })
@@ -318,7 +320,7 @@ export default function ChartBuilder({ currentProject }) {
           <Chip size="small"
             color={dataSourceLabel.startsWith('数据集') ? 'primary' : 'default'}
             variant="outlined"
-            label={dataSourceLabel}
+            label={linkedAnalysisId ? `${dataSourceLabel} · 关联分析 #${linkedAnalysisId}` : dataSourceLabel}
             sx={{ mt: 1 }} />
         </Box>
         <Stack direction="row" spacing={1} alignItems="center">

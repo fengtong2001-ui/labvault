@@ -3,6 +3,16 @@
 LabVault — 科研数据管理与统计绘图系统。所有显著更新记录于此。
 格式参考 Keep a Changelog;协作模式:ZCode × Antigravity swarm。
 
+## [0.2.3-alpha] 2026-11-18 第 4 轮(工作簿回看 + 关联链)
+
+### 新增
+- 工作簿图表条目点击回看(Dialog 渲染已存 Plotly);分析条目点击展开统计摘要
+- analysis_id 关联链:统计页保存后「生成关联图表」→ 图表保存自动携带 analysis_id
+- 修复:数据集列表自动选中覆盖 URL ?dataset= 的问题
+
+### 详见
+- docs/announcements/2026-11-18-round4.md
+
 ## [0.2.2-alpha] 2026-11-18 第 3 轮(特殊图型两段式 + 工作簿面板)
 
 ### 新增

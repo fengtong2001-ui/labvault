@@ -19,6 +19,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import { useNavigate } from 'react-router-dom';
 import { datasetsApi, projectsApi, importApi, analysesApi, chartsApi } from '../utils/api';
+import ChartViewer from '../components/ChartViewer';
 import DataImport from '../components/DataImport';
 
 // 预设科研模板数据集
@@ -99,6 +100,8 @@ export default function DataTable({ currentProject }) {
   // 工作簿:当前数据集已保存的分析结果与图表(Prism 式 Results/Graphs)—— zcode
   const [workbook, setWorkbook] = useState({ analyses: [], charts: [] });
   const [wbOpen, setWbOpen] = useState(true);
+  const [viewChart, setViewChart] = useState(null);
+  const [expandedAnalysis, setExpandedAnalysis] = useState(null);
   useEffect(() => {
     if (!selectedDatasetId) {
       setWorkbook({ analyses: [], charts: [] });
@@ -647,26 +650,65 @@ export default function DataTable({ currentProject }) {
           {wbOpen && (
             <Stack spacing={0.5} sx={{ mt: 1 }}>
               {workbook.charts.map((c) => (
-                <Stack key={`c${c.id}`} direction="row" spacing={1} alignItems="center">
+                <Stack
+                  key={`c${c.id}`} direction="row" spacing={1} alignItems="center"
+                  onClick={() => setViewChart(c)} sx={{ cursor: 'pointer', borderRadius: 1, '&:hover': { bgcolor: 'action.hover' } }}
+                >
                   <Chip size="small" color="primary" variant="outlined" label="图" sx={{ minWidth: 32 }} />
                   <Typography variant="body2">{c.title || c.chart_type}</Typography>
                   <Typography variant="caption" color="text.secondary">{c.created_at}</Typography>
                 </Stack>
               ))}
               {workbook.analyses.map((a) => (
-                <Stack key={`a${a.id}`} direction="row" spacing={1} alignItems="center">
-                  <Chip size="small" color="secondary" variant="outlined" label="析" sx={{ minWidth: 32 }} />
-                  <Typography variant="body2">
-                    {a.type}{a.result?.method ? ` · ${a.result.method}` : ''}
-                    {a.result?.summary?.结论 ? ` · ${a.result.summary.结论}` : ''}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">{a.created_at}</Typography>
-                </Stack>
+                <Box key={`a${a.id}`}>
+                  <Stack
+                    direction="row" spacing={1} alignItems="center"
+                    onClick={() => setExpandedAnalysis(expandedAnalysis === a.id ? null : a.id)}
+                    sx={{ cursor: 'pointer', borderRadius: 1, '&:hover': { bgcolor: 'action.hover' } }}
+                  >
+                    <Chip size="small" color="secondary" variant="outlined" label="析" sx={{ minWidth: 32 }} />
+                    <Typography variant="body2">
+                      {a.type}{a.result?.method ? ` · ${a.result.method}` : ''}
+                      {a.result?.summary?.结论 ? ` · ${a.result.summary.结论}` : ''}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">{a.created_at}</Typography>
+                  </Stack>
+                  {expandedAnalysis === a.id && a.result?.summary && (
+                    <Box sx={{ ml: 5, mt: 0.5, p: 1, bgcolor: 'action.hover', borderRadius: 1 }}>
+                      {Object.entries(a.result.summary).map(([k, v]) => (
+                        <Typography key={k} variant="caption" sx={{ display: 'block', fontFamily: 'monospace' }}>
+                          {k}: {String(v)}
+                        </Typography>
+                      ))}
+                    </Box>
+                  )}
+                </Box>
               ))}
             </Stack>
           )}
         </Paper>
       )}
+
+      {/* 工作簿图表回看弹窗 —— zcode */}
+      <Dialog open={!!viewChart} onClose={() => setViewChart(null)} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {viewChart?.title || viewChart?.chart_type}
+          <Typography variant="caption" color="text.secondary">{viewChart?.created_at}</Typography>
+        </DialogTitle>
+        <DialogContent>
+          {viewChart && (
+            <ChartViewer
+              data={viewChart.plotly?.data || []}
+              layout={viewChart.plotly?.layout || {}}
+              title=""
+              height={420}
+            />
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setViewChart(null)}>关闭</Button>
+        </DialogActions>
+      </Dialog>
 
       {/* 文件导入弹窗 */}
       <Dialog open={importDialogOpen} onClose={() => setImportDialogOpen(false)} maxWidth="sm" fullWidth>

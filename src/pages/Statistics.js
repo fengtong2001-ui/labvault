@@ -105,6 +105,7 @@ export default function Statistics({ currentProject }) {
   const [datasetSource, setDatasetSource] = useState(null);
   const [datasetId, setDatasetId] = useState(null);
   const [saveState, setSaveState] = useState(null);
+  const [savedAnalysisId, setSavedAnalysisId] = useState(null);
 
   // GraphPad 式整合:?dataset=<id> 时自动从数据集载入分组数据 —— zcode
   useEffect(() => {
@@ -313,18 +314,26 @@ export default function Statistics({ currentProject }) {
     if (!results) return;
     try {
       const projectId = Number(searchParams.get('project')) || currentProject?.id || null;
-      await analysesApi.save({
+      const res = await analysesApi.save({
         analysis_type: method,
         params: { ttestType, alpha, g1: ttestG1, g2: ttestG2, dataset_source: datasetSource },
         result: results,
         dataset_id: datasetId,
         project_id: projectId,
       });
+      setSavedAnalysisId(res.data?.id || null);
       setSaveState('已保存到数据集 ✓');
       setTimeout(() => setSaveState(null), 3000);
     } catch (e) {
       setSaveState(`保存失败:${e.message}`);
     }
+  };
+
+  // 生成关联图表:带着刚保存的 analysis_id 进入图表页,保存图表时自动挂钩 —— zcode
+  const gotoLinkedChart = () => {
+    if (!datasetId) return;
+    const pid = searchParams.get('project') || currentProject?.id || '';
+    navigate(`/charts?dataset=${datasetId}&project=${pid}${savedAnalysisId ? `&analysis=${savedAnalysisId}` : ''}`);
   };
 
   return (
@@ -358,6 +367,17 @@ export default function Statistics({ currentProject }) {
           >
             保存到数据集
           </Button>
+          {savedAnalysisId && (
+            <Button
+              variant="outlined"
+              color="secondary"
+              startIcon={<BarChartIcon />}
+              onClick={gotoLinkedChart}
+              size="small"
+            >
+              生成关联图表
+            </Button>
+          )}
           <Button
             variant="outlined"
             startIcon={<BarChartIcon />}
