@@ -3,6 +3,14 @@
 LabVault — 科研数据管理与统计绘图系统。所有显著更新记录于此。
 格式参考 Keep a Changelog;协作模式:ZCode × Antigravity swarm。
 
+## [0.2.26-alpha] 2026-11-18 第 27 轮(工作簿按钮顺序统一)
+
+### 打磨
+- 分析条目操作按钮重排为「重命名→CSV→JSON→出图→删除」,与图表条目一致
+
+### 详见
+- docs/announcements/2026-11-18-round27.md
+
 ## [0.2.25-alpha] 2026-11-18 第 26 轮(Excel 嵌图页)
 
 ### 新增
