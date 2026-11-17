@@ -3,6 +3,16 @@
 LabVault — 科研数据管理与统计绘图系统。所有显著更新记录于此。
 格式参考 Keep a Changelog;协作模式:ZCode × Antigravity swarm。
 
+## [0.2.6-alpha] 2026-11-18 第 7 轮(工作簿条目管理)
+
+### 新增
+- 工作簿图表/分析条目删除(带确认)+ 后端 DELETE /api/analyses/<id>、
+  DELETE /api/charts/<id>
+- 图表条目「重新生成」:/charts?dataset=&project=&type= 直达指定图型自动生成
+
+### 详见
+- docs/announcements/2026-11-18-round7.md
+
 ## [0.2.5-alpha] 2026-11-18 第 6 轮(工作簿聚合 PDF 报告)
 
 ### 新增

@@ -250,6 +250,25 @@ def update_dataset(dataset_id: int, name: str = None, data: list = None,
 
 # ─── 分析结果 CRUD ───────────────────────────────────────────────────────────
 
+def delete_analysis(analysis_id: int) -> bool:
+    """删除分析结果(由 ZCode 添加:工作簿条目管理)"""
+    conn = get_conn()
+    cur = conn.execute("DELETE FROM analyses WHERE id = ?", (analysis_id,))
+    conn.commit()
+    affected = cur.rowcount
+    conn.close()
+    return affected > 0
+
+
+def delete_chart(chart_id: int) -> bool:
+    """删除图表(由 ZCode 添加:工作簿条目管理)"""
+    conn = get_conn()
+    cur = conn.execute("DELETE FROM charts WHERE id = ?", (chart_id,))
+    conn.commit()
+    affected = cur.rowcount
+    conn.close()
+    return affected > 0
+
 def save_analysis(analysis_type: str, params: dict, result: dict,
                   dataset_id: int = None, project_id: int = None) -> dict:
     """保存分析结果"""

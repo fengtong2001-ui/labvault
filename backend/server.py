@@ -520,6 +520,18 @@ def api_analyses():
                     "data": db.list_analyses(project_id=proj_id, dataset_id=ds_id)})
 
 
+@app.route('/api/analyses/<int:analysis_id>', methods=['DELETE'])
+def api_delete_analysis(analysis_id: int):
+    """删除分析结果 —— 由 ZCode 添加(工作簿条目管理)"""
+    try:
+        if not db.delete_analysis(analysis_id):
+            return jsonify({"error": "分析结果不存在"}), 404
+        return jsonify({"status": "success", "message": "分析结果已删除"})
+    except Exception as e:
+        logger.error(f"删除分析结果失败: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route('/api/charts', methods=['POST', 'GET'])
 def api_charts():
     """
@@ -546,6 +558,18 @@ def api_charts():
     proj_id = request.args.get('project_id', type=int)
     return jsonify({"status": "success",
                     "data": db.list_charts(project_id=proj_id, dataset_id=ds_id)})
+
+
+@app.route('/api/charts/<int:chart_id>', methods=['DELETE'])
+def api_delete_chart(chart_id: int):
+    """删除图表 —— 由 ZCode 添加(工作簿条目管理)"""
+    try:
+        if not db.delete_chart(chart_id):
+            return jsonify({"error": "图表不存在"}), 404
+        return jsonify({"status": "success", "message": "图表已删除"})
+    except Exception as e:
+        logger.error(f"删除图表失败: {e}")
+        return jsonify({"error": str(e)}), 500
 
 
 # ─── 主服务启动 ───────────────────────────────────────────────────────────────

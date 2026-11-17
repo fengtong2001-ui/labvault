@@ -102,18 +102,49 @@ export default function DataTable({ currentProject }) {
   const [wbOpen, setWbOpen] = useState(true);
   const [viewChart, setViewChart] = useState(null);
   const [expandedAnalysis, setExpandedAnalysis] = useState(null);
-  useEffect(() => {
-    if (!selectedDatasetId) {
+  const refreshWorkbook = useCallback((dsId) => {
+    if (!dsId) {
       setWorkbook({ analyses: [], charts: [] });
       return;
     }
-    analysesApi.list({ dataset_id: selectedDatasetId })
+    analysesApi.list({ dataset_id: dsId })
       .then((res) => setWorkbook((w) => ({ ...w, analyses: res.data || [] })))
       .catch(() => {});
-    chartsApi.list({ dataset_id: selectedDatasetId })
+    chartsApi.list({ dataset_id: dsId })
       .then((res) => setWorkbook((w) => ({ ...w, charts: res.data || [] })))
       .catch(() => {});
-  }, [selectedDatasetId, editingDatasetId]);
+  }, []);
+  useEffect(() => {
+    refreshWorkbook(selectedDatasetId);
+  }, [selectedDatasetId, editingDatasetId, refreshWorkbook]);
+
+  // 工作簿条目删除/重新生成 —— zcode
+  const handleDeleteChart = async (e, c) => {
+    e.stopPropagation();
+    if (!window.confirm(`删除图表「${c.title || c.chart_type}」?此操作不可撤销。`)) return;
+    try {
+      await chartsApi.delete(c.id);
+      setSnackbar({ open: true, message: '图表已删除', severity: 'success' });
+      refreshWorkbook(selectedDatasetId);
+    } catch (err) {
+      setSnackbar({ open: true, message: `删除失败: ${err.message}`, severity: 'error' });
+    }
+  };
+  const handleDeleteAnalysis = async (e, a) => {
+    e.stopPropagation();
+    if (!window.confirm(`删除分析结果「${a.type}」?此操作不可撤销。`)) return;
+    try {
+      await analysesApi.delete(a.id);
+      setSnackbar({ open: true, message: '分析结果已删除', severity: 'success' });
+      refreshWorkbook(selectedDatasetId);
+    } catch (err) {
+      setSnackbar({ open: true, message: `删除失败: ${err.message}`, severity: 'error' });
+    }
+  };
+  const handleRegenerateChart = (e, c) => {
+    e.stopPropagation();
+    navigate(`/charts?dataset=${selectedDatasetId}&project=${selectedProjectId}&type=${c.chart_type}`);
+  };
 
   // 状态与弹窗
   const [loading, setLoading] = useState(false);
@@ -657,6 +688,16 @@ export default function DataTable({ currentProject }) {
                   <Chip size="small" color="primary" variant="outlined" label="图" sx={{ minWidth: 32 }} />
                   <Typography variant="body2">{c.title || c.chart_type}</Typography>
                   <Typography variant="caption" color="text.secondary">{c.created_at}</Typography>
+                  <Tooltip title="以此数据集与图型重新生成">
+                    <IconButton size="small" onClick={(e) => handleRegenerateChart(e, c)}>
+                      <RefreshIcon sx={{ fontSize: 15 }} />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="删除图表">
+                    <IconButton size="small" onClick={(e) => handleDeleteChart(e, c)}>
+                      <DeleteOutlineIcon sx={{ fontSize: 15, color: 'error.main' }} />
+                    </IconButton>
+                  </Tooltip>
                 </Stack>
               ))}
               {workbook.analyses.map((a) => (
@@ -682,6 +723,11 @@ export default function DataTable({ currentProject }) {
                     >
                       从该分析出图
                     </Button>
+                    <Tooltip title="删除分析结果">
+                      <IconButton size="small" onClick={(e) => handleDeleteAnalysis(e, a)}>
+                        <DeleteOutlineIcon sx={{ fontSize: 15, color: 'error.main' }} />
+                      </IconButton>
+                    </Tooltip>
                   </Stack>
                   {expandedAnalysis === a.id && a.result?.summary && (
                     <Box sx={{ ml: 5, mt: 0.5, p: 1, bgcolor: 'action.hover', borderRadius: 1 }}>

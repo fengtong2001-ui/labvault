@@ -139,6 +139,9 @@ export const chartsApi = {
 
   /** 列出已保存图表 —— zcode */
   list: (params) => api.get('/api/charts', { params }),
+
+  /** 删除图表 —— zcode */
+  delete: (id) => api.delete(`/api/charts/${id}`),
 };
 
 // ─────────────────────────────────────────────
@@ -150,6 +153,9 @@ export const analysesApi = {
 
   /** 列出分析结果 { dataset_id | project_id } */
   list: (params) => api.get('/api/analyses', { params }),
+
+  /** 删除分析结果 —— zcode */
+  delete: (id) => api.delete(`/api/analyses/${id}`),
 };
 
 // ─────────────────────────────────────────────

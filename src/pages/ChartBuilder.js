@@ -43,8 +43,8 @@ export default function ChartBuilder({ currentProject }) {
   const [autoTried, setAutoTried] = useState(false);
   const linkedAnalysisId = searchParams.get('analysis');
 
-  // 图表配置
-  const [chartType, setChartType] = useState('bar');
+  // 图表配置(?type= 支持工作簿「重新生成」直达指定图型 —— zcode)
+  const [chartType, setChartType] = useState(searchParams.get('type') || 'bar');
   const [title, setTitle] = useState('实验组与对照组比较');
   const [xLabel, setXLabel] = useState('分组 (Group)');
   const [yLabel, setYLabel] = useState('反应测量值 (Unit)');
