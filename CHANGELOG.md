@@ -3,6 +3,14 @@
 LabVault — 科研数据管理与统计绘图系统。所有显著更新记录于此。
 格式参考 Keep a Changelog;协作模式:ZCode × Antigravity swarm。
 
+## [0.2.17-alpha] 2026-11-18 第 18 轮(回看→编辑器闭环)
+
+### 新增
+- 工作簿图表回看 Dialog「在图表构建器中打开」→ /charts?...&type= 直达编辑器
+
+### 详见
+- docs/announcements/2026-11-18-round18.md
+
 ## [0.2.16-alpha] 2026-11-18 第 17 轮(统计↔数据表双向深链)
 
 ### 新增
