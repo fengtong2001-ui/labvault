@@ -20,7 +20,7 @@ import ScienceIcon from '@mui/icons-material/Science';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { datasetsApi, projectsApi, importApi, analysesApi, chartsApi, downloadBlob } from '../utils/api';
 import { mean, sd, classifyColumns, groupValues } from '../utils/datasetStats';
 import ChartViewer from '../components/ChartViewer';
@@ -85,9 +85,10 @@ const SAMPLE_TEMPLATES = [
 export default function DataTable({ currentProject }) {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
-  const [selectedProjectId, setSelectedProjectId] = useState(currentProject?.id || '');
+  const [searchParams] = useSearchParams();
+  const [selectedProjectId, setSelectedProjectId] = useState(searchParams.get('project') || currentProject?.id || '');
   const [datasets, setDatasets] = useState([]);
-  const [selectedDatasetId, setSelectedDatasetId] = useState('');
+  const [selectedDatasetId, setSelectedDatasetId] = useState(searchParams.get('dataset') || '');
   
   // 表格状态
   const [columns, setColumns] = useState(['Column A', 'Column B', 'Column C']);
@@ -270,7 +271,12 @@ export default function DataTable({ currentProject }) {
         const list = Array.isArray(res) ? res : res.data || res.datasets || [];
         setDatasets(list);
         if (list.length > 0) {
-          loadDatasetDetail(projId, list[0].id);
+          // URL ?dataset= 深链优先(与统计/图表页双向跳转)—— zcode
+          const urlDs = searchParams.get('dataset');
+          const dsId = urlDs && list.some(d => String(d.id) === String(urlDs))
+            ? urlDs : list[0].id;
+          setSelectedDatasetId(dsId);
+          loadDatasetDetail(projId, dsId);
         } else {
           setEditingDatasetId(null);
           setDatasetName('新建数据集 1');

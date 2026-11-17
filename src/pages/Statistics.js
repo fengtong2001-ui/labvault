@@ -366,7 +366,12 @@ export default function Statistics({ currentProject }) {
             <Chip size="small" color="primary" variant="outlined"
               icon={<ScienceIcon fontSize="small" />}
               label={`数据来源:${datasetSource}`}
-              sx={{ mt: 1 }} onDelete={() => setDatasetSource(null)} />
+              onClick={() => {
+                const pid = searchParams.get('project') || currentProject?.id || '';
+                navigate(`/data?dataset=${datasetId || ''}&project=${pid}`);
+              }}
+              sx={{ mt: 1, cursor: 'pointer' }}
+              onDelete={() => setDatasetSource(null)} />
           )}
         </Box>
         <Stack direction="row" spacing={1} alignItems="center">
