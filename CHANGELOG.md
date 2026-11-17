@@ -3,6 +3,16 @@
 LabVault — 科研数据管理与统计绘图系统。所有显著更新记录于此。
 格式参考 Keep a Changelog;协作模式:ZCode × Antigravity swarm。
 
+## [0.2.9-alpha] 2026-11-18 第 10 轮(分组对比入口 + 图表重命名)
+
+### 新增
+- 快速统计条实时显示分组均值(分类列→数值列)+「按组对比 (t 检验)」一键入口
+  (自动保存 → 统计页按组预填)
+- 工作簿图表重命名:PUT /api/charts/<id>(db.update_chart)
+
+### 详见
+- docs/announcements/2026-11-18-round10.md
+
 ## [0.2.8-alpha] 2026-11-18 第 9 轮(列级快速统计 + 运行方式切换)
 
 ### 新增
