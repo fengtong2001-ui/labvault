@@ -29,6 +29,15 @@ LabVault — 科研数据管理与统计绘图系统。所有显著更新记录�
 ### 详见
 - docs/announcements/2026-11-18-round26.md
 
+## [0.2.20-poly] 2026-11-18 第 29 轮(摘要表密度走查)
+
+### 微调
+- StatResults 摘要表键列宽度 45%→40%;工作簿面板行距紧凑
+- 走查确认摘要表已为 small 密度 + Accordion 折叠
+
+### 详见
+- docs/announcements/2026-11-18-round29.md
+
 ## [0.2.20-alpha] 2026-11-18 第 21 轮(深色 Plotly 适配)
 
 ### 打磨
