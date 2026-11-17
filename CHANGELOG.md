@@ -3,6 +3,15 @@
 LabVault — 科研数据管理与统计绘图系统。所有显著更新记录于此。
 格式参考 Keep a Changelog;协作模式:ZCode × Antigravity swarm。
 
+## [0.2.11-alpha] 2026-11-18 第 12 轮(工作簿条目导出 JSON)
+
+### 新增
+- 工作簿分析条目 ⬇ 导出 `labvault-analysis-<id>.json`(参数+结果可复现)
+- 工作簿图表条目 ⬇ 导出 `labvault-chart-<id>.json`(完整 Plotly 规格)
+
+### 详见
+- docs/announcements/2026-11-18-round12.md
+
 ## [0.2.10-alpha] 2026-11-18 第 11 轮(分析条目重命名 + 深色走查)
 
 ### 新增
