@@ -61,7 +61,7 @@ function SummaryTable({ summary }) {
         <TableBody>
           {rows.map(([key, val]) => (
             <TableRow key={key} hover>
-              <TableCell sx={{ fontWeight: 600, color: 'text.secondary', width: '45%' }}>
+              <TableCell sx={{ fontWeight: 600, color: 'text.secondary', width: '40%' }}>
                 {key}
               </TableCell>
               <TableCell sx={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.85rem' }}>
