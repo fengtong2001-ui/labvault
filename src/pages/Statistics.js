@@ -265,6 +265,11 @@ export default function Statistics({ currentProject }) {
         throw new Error(res.error);
       }
       setResults(normalizeStatResult(res.result || res));
+      // 结果面板滚动定位 —— zcode
+      setTimeout(() => {
+        document.querySelector('[data-results-panel]')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 150);
     } catch (err) {
       setError(err.message || '统计分析计算失败');
       // 已移除伪造统计数据的本地兜底：失败时只展示错误提示 (zcode)
@@ -652,19 +657,27 @@ export default function Statistics({ currentProject }) {
               borderRadius: 2,
               overflowY: 'auto'
             }}
+            data-results-panel="1"
           >
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
               <Typography variant="h6" fontWeight={700}>
                 统计检验结果报告
               </Typography>
               {results && (
-                <Chip
-                  icon={<CheckCircleOutlineIcon />}
-                  label="计算完成"
-                  color="success"
-                  size="small"
-                  variant="outlined"
-                />
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Chip
+                    label={`生成于 ${new Date().toLocaleTimeString('sv')}`}
+                    size="small"
+                    variant="outlined"
+                  />
+                  <Chip
+                    icon={<CheckCircleOutlineIcon />}
+                    label="计算完成"
+                    color="success"
+                    size="small"
+                    variant="outlined"
+                  />
+                </Stack>
               )}
             </Box>
 
