@@ -136,7 +136,6 @@ def _export_pdf_matplotlib(
         # 页脚
         ax.plot([0.05, 0.95], [0.05, 0.05], color='#E2E8F0', lw=1, transform=ax.transAxes)
         ax.text(0.05, 0.03, "LabVault - Confidential - For Research Use Only", fontsize=8, color='#A0AEC0')
-        ax.text(0.95, 0.03, "Page 1 of 2", fontsize=8, color='#A0AEC0', ha='right')
 
         pdf.savefig(fig, bbox_inches='tight')
         plt.close(fig)
@@ -191,7 +190,6 @@ def _export_pdf_matplotlib(
 
             ax2.plot([0.05, 0.95], [0.05, 0.05], color='#E2E8F0', lw=1, transform=ax2.transAxes)
             ax2.text(0.05, 0.03, "LabVault - Confidential - For Research Use Only", fontsize=8, color='#A0AEC0')
-            ax2.text(0.95, 0.03, "Page 2 of 2", fontsize=8, color='#A0AEC0', ha='right')
             pdf.savefig(fig2, bbox_inches='tight')
             plt.close(fig2)
 

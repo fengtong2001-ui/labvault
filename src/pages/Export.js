@@ -4,7 +4,7 @@ import {
   MenuItem, FormControl, InputLabel, Card, CardContent,
   Checkbox, FormControlLabel, FormGroup, Divider, Stack,
   Chip, Alert, CircularProgress, IconButton, Tooltip,
-  RadioGroup, Radio
+  RadioGroup, Radio, Table, TableHead, TableBody, TableCell, TableContainer, TableRow
 } from '@mui/material';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import TableChartIcon from '@mui/icons-material/TableChart';
@@ -289,6 +289,43 @@ export default function Export({ currentProject }) {
 
       {successMsg && <Alert severity="success" onClose={() => setSuccessMsg(null)}>{successMsg}</Alert>}
       {error && <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>}
+
+      {/* 当前数据集预览(导出前确认内容)—— zcode */}
+      {currentDatasetData && (
+        <Paper variant="outlined" sx={{ px: 2, py: 1.5 }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Typography variant="body2" fontWeight={600}>
+              当前数据集:{currentDatasetData.name || '数据集'}
+            </Typography>
+            <Chip size="small" variant="outlined"
+              label={`共 ${(currentDatasetData.data || []).length} 行 × ${(currentDatasetData.columns || []).length} 列`} />
+          </Stack>
+          {(currentDatasetData.data || []).length > 0 && (
+            <TableContainer sx={{ maxHeight: 220, mt: 1, overflow: 'auto' }}>
+              <Table size="small" stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    {(currentDatasetData.columns || []).map((c) => (
+                      <TableCell key={c} sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{c}</TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {currentDatasetData.data.slice(0, 6).map((r, ri) => (
+                    <TableRow key={ri}>
+                      {(currentDatasetData.columns || []).map((c, ci) => (
+                        <TableCell key={ci} sx={{ whiteSpace: 'nowrap' }}>
+                          {String(Array.isArray(r) ? r[ci] : r?.[c] ?? '')}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </Paper>
+      )}
 
       <Grid container spacing={2} sx={{ flex: 1, minHeight: 0 }}>
         {/* 左侧：导出格式与数据源选择 */}
