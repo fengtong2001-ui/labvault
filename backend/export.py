@@ -131,23 +131,7 @@ def _export_pdf_matplotlib(
                     cell.set_facecolor('#F7FAFC' if r % 2 == 0 else 'white')
             y_pos -= 0.26
 
-        # 数据预览
-        if table_data and len(table_data) > 0:
-            ax.text(0.06, y_pos, "3. 数据样本截取预览 (Data Preview):", fontsize=11, fontweight='bold', color='#2B6CB0')
-            df_p = pd.DataFrame(table_data).head(6)
-            cols = list(df_p.columns)[:6]
-            preview_cells = [cols]
-            for _, r in df_p.iterrows():
-                preview_cells.append([str(r[c])[:10] for c in cols])
-            t_prev = ax.table(cellText=preview_cells, loc='center', bbox=[0.05, y_pos - 0.22, 0.9, 0.2])
-            t_prev.auto_set_font_size(False)
-            t_prev.set_fontsize(8)
-            for (r, c), cell in t_prev.get_celld().items():
-                if r == 0:
-                    cell.set_facecolor('#E2E8F0')
-                    cell.set_text_props(fontweight='bold')
-                else:
-                    cell.set_facecolor('white')
+        # 数据预览移至独立页面(第 2 页),避免与统计表格挤压重叠 —— zcode
 
         # 页脚
         ax.plot([0.05, 0.95], [0.05, 0.05], color='#E2E8F0', lw=1, transform=ax.transAxes)
@@ -157,7 +141,37 @@ def _export_pdf_matplotlib(
         pdf.savefig(fig, bbox_inches='tight')
         plt.close(fig)
 
-        # Page 2: 图表页（若有图表图片）
+        # Page 2: 数据预览(独立成页,列宽按内容自适应)—— zcode
+        if table_data and len(table_data) > 0:
+            figp, axp = plt.subplots(figsize=(8.5, 11))
+            axp.axis('off')
+            df_p = pd.DataFrame(table_data)
+            axp.text(0.5, 0.95, "数据预览 (Data Preview)", fontsize=16, fontweight='bold',
+                     ha='center', color='#1A365D')
+            axp.text(0.5, 0.92, f"共 {len(table_data)} 行 × {len(df_p.columns)} 列,此处展示前 8 行",
+                     fontsize=10, ha='center', color='#4A5568')
+            axp.plot([0.05, 0.95], [0.90, 0.90], color='#CBD5E0', lw=1, transform=axp.transAxes)
+
+            preview_cells = [list(df_p.columns)]
+            for _, r in df_p.head(8).iterrows():
+                preview_cells.append([str(r[c])[:14] for c in df_p.columns])
+            n_cols = max(1, len(df_p.columns))
+            col_w = min(0.9 / n_cols, 0.25)
+            t_prev = axp.table(cellText=preview_cells, loc='center',
+                               bbox=[0.05, 0.35, 0.9, 0.45])
+            t_prev.auto_set_font_size(False)
+            t_prev.set_fontsize(8)
+            for (r, c), cell in t_prev.get_celld().items():
+                if r == 0:
+                    cell.set_facecolor('#2B6CB0')
+                    cell.set_text_props(color='white', fontweight='bold')
+                else:
+                    cell.set_facecolor('#F7FAFC' if r % 2 == 0 else 'white')
+            axp.text(0.05, 0.03, "LabVault - Confidential - For Research Use Only", fontsize=8, color='#A0AEC0')
+            pdf.savefig(figp, bbox_inches='tight')
+            plt.close(figp)
+
+        # Page 3+: 图表页（若有图表图片）
         if chart_image_base64:
             fig2, ax2 = plt.subplots(figsize=(8.5, 11))
             ax2.axis('off')

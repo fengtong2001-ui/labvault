@@ -104,20 +104,30 @@ export default function DataTable({ currentProject }) {
   const [savedSnapshot, setSavedSnapshot] = useState(null);
   const snapshotOf = (name, cols, rws) => JSON.stringify([name, cols, rws]);
 
-  // 快速统计:点列头统计图标,即出该列 n/mean±SD/min/max —— zcode
+  // 快速统计:点列头统计图标 —— 数值列出单列统计,分类列自动联动按组统计 —— zcode
   const [quickStatCol, setQuickStatCol] = useState(null);
   const quickStat = useMemo(() => {
     const idx = quickStatCol;
     if (idx === null || idx === undefined || idx >= columns.length) return null;
-    const nums = rows
-      .map(r => {
-        const raw = Array.isArray(r) ? r[idx] : '';
-        return (raw !== '' && raw !== null && raw !== undefined) ? Number(raw) : NaN;
-      })
-      .filter(v => !isNaN(v));
-    if (nums.length === 0) return { empty: true, col: columns[idx] };
-    return { col: columns[idx], n: nums.length, mean: mean(nums), sd: sd(nums),
-             min: Math.min(...nums), max: Math.max(...nums) };
+    const raw = rows.map(r => Array.isArray(r) ? r[idx] : '')
+      .filter(v => v !== '' && v !== null && v !== undefined);
+    const nums = raw.map(Number).filter(v => !isNaN(v));
+    // 数值列:单列统计
+    if (raw.length > 0 && nums.length / raw.length >= 0.8) {
+      return { kind: 'numeric', col: columns[idx], n: nums.length,
+               mean: mean(nums), sd: sd(nums),
+               min: Math.min(...nums), max: Math.max(...nums) };
+    }
+    // 分类列:联动第一个数值列,按组统计
+    const { categorical, numeric } = classifyColumns(columns, rows);
+    if (categorical.includes(idx) && numeric.length) {
+      const groups = groupValues(rows, idx, numeric[0]);
+      const details = Object.keys(groups).map(n => ({
+        name: n, n: groups[n].length, mean: mean(groups[n]), sd: sd(groups[n]),
+      }));
+      return { kind: 'categorical', col: columns[idx], valCol: columns[numeric[0]], details };
+    }
+    return { kind: 'empty', col: columns[idx] };
   }, [quickStatCol, rows, columns]);
 
   // 分组均值(分类列→数值列):Prism 式组间对比入口 —— zcode
@@ -628,9 +638,11 @@ export default function DataTable({ currentProject }) {
               <>
                 <Divider orientation="vertical" flexItem sx={{ mx: 1, height: 16 }} />
                 <Chip size="small" color="info" variant="outlined"
-                  label={quickStat.empty ? `${quickStat.col}: 无数值` : `快速统计:${quickStat.col}`}
+                  label={quickStat.kind === 'numeric' ? `快速统计:${quickStat.col}`
+                    : quickStat.kind === 'categorical' ? `按组统计:${quickStat.col} → ${quickStat.valCol}`
+                    : `${quickStat.col}: 无数值`}
                   onDelete={() => setQuickStatCol(null)} />
-                {!quickStat.empty && (
+                {quickStat.kind === 'numeric' && (
                   <Stack direction="row" spacing={1.5} alignItems="center">
                     <Typography variant="caption" fontFamily="monospace">n={quickStat.n}</Typography>
                     <Typography variant="caption" fontFamily="monospace">
@@ -639,6 +651,14 @@ export default function DataTable({ currentProject }) {
                     <Typography variant="caption" fontFamily="monospace">
                       [{quickStat.min}, {quickStat.max}]
                     </Typography>
+                  </Stack>
+                )}
+                {quickStat.kind === 'categorical' && (
+                  <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                    {quickStat.details.map(g => (
+                      <Chip key={g.name} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }}
+                        label={`${g.name} ${g.mean.toFixed(3)}±${g.sd.toFixed(3)} (n=${g.n})`} />
+                    ))}
                   </Stack>
                 )}
               </>
