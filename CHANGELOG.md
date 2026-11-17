@@ -3,6 +3,15 @@
 LabVault — 科研数据管理与统计绘图系统。所有显著更新记录于此。
 格式参考 Keep a Changelog;协作模式:ZCode × Antigravity swarm。
 
+## [0.2.25-alpha] 2026-11-18 第 26 轮(Excel 嵌图页)
+
+### 新增
+- Excel 工作簿新增 Workbook_Charts 页:工作簿全部已保存图表嵌入
+  (kaleido PNG,openpyxl 嵌图);Export 页 Excel 分支同步传递 charts_plotly
+
+### 详见
+- docs/announcements/2026-11-18-round26.md
+
 ## [0.2.20-alpha] 2026-11-18 第 21 轮(深色 Plotly 适配)
 
 ### 打磨
@@ -30,7 +39,7 @@ LabVault — 科研数据管理与统计绘图系统。所有显著更新记录�
 ### 详见
 - docs/announcements/2026-11-18-round25.md
 
-## [0.2.23-alpha] 2026-11-18 第 24 轮(导航补全 + 工作簿提示)
+## [0.2.22-alpha] 2026-11-18 第 23 轮(宽表预览 + 条目标题溢出)
 
 ### 修复/打磨
 - PDF 数据预览多列截断(8 列上限+说明);colWidths 真正应用(round14 计算了但未传参)
