@@ -848,6 +848,13 @@ export default function DataTable({ currentProject, isDark = false }) {
       </Dialog>
 
       {/* 工作簿:数据集已保存的分析结果与图表(Prism 式 Results/Graphs)—— zcode */}
+      {!selectedDatasetId && (
+        <Paper variant="outlined" sx={{ px: 2, py: 1.5 }}>
+          <Typography variant="body2" color="text.secondary">
+            工作簿:先在上方选择项目与数据集,该数据集的分析结果与图表会显示在这里。
+          </Typography>
+        </Paper>
+      )}
       {selectedDatasetId && (
         <Paper variant="outlined" sx={{ px: 2, py: 1.5 }}>
           <Stack

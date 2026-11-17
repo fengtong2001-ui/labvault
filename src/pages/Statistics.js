@@ -424,6 +424,13 @@ export default function Statistics({ currentProject }) {
             转至图表绘制
           </Button>
           <Button
+            variant="outlined"
+            onClick={() => navigate('/data')}
+            size="small"
+          >
+            转至数据表格
+          </Button>
+          <Button
             variant="contained"
             color="primary"
             startIcon={<PlayArrowIcon />}
