@@ -133,6 +133,23 @@ export const chartsApi = {
    * @param {Object} config - { type, data, layout, style }
    */
   generate: (config) => api.post('/api/charts/generate', config),
+
+  /** 保存图表到数据集/项目(落库)—— zcode */
+  save: (data) => api.post('/api/charts', data),
+
+  /** 列出已保存图表 —— zcode */
+  list: (params) => api.get('/api/charts', { params }),
+};
+
+// ─────────────────────────────────────────────
+// 分析结果持久化 API —— zcode
+// ─────────────────────────────────────────────
+export const analysesApi = {
+  /** 保存统计结果 { analysis_type, params, result, dataset_id, project_id } */
+  save: (data) => api.post('/api/analyses', data),
+
+  /** 列出分析结果 { dataset_id | project_id } */
+  list: (params) => api.get('/api/analyses', { params }),
 };
 
 // ─────────────────────────────────────────────

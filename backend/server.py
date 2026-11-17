@@ -489,6 +489,63 @@ def api_export_excel():
         return jsonify({"error": f"Excel 导出失败: {str(e)}"}), 500
 
 
+# ─── 分析结果与图表落库 (由 ZCode 添加:Prism 式结果工作表) ───────────────────
+
+@app.route('/api/analyses', methods=['POST', 'GET'])
+def api_analyses():
+    """
+    POST: 保存统计分析结果 { analysis_type, params, result, dataset_id, project_id }
+    GET:  按 dataset_id / project_id 列出分析结果
+    """
+    if request.method == 'POST':
+        try:
+            payload = request.get_json(force=True) or {}
+            analysis = db.save_analysis(
+                analysis_type=payload.get('analysis_type') or payload.get('type') or 'unknown',
+                params=payload.get('params') or {},
+                result=payload.get('result') or {},
+                dataset_id=payload.get('dataset_id'),
+                project_id=payload.get('project_id'),
+            )
+            return jsonify({"status": "success", "data": analysis}), 201
+        except Exception as e:
+            logger.error(f"保存分析结果失败: {e}")
+            return jsonify({"error": str(e)}), 500
+
+    ds_id = request.args.get('dataset_id', type=int)
+    proj_id = request.args.get('project_id', type=int)
+    return jsonify({"status": "success",
+                    "data": db.list_analyses(project_id=proj_id, dataset_id=ds_id)})
+
+
+@app.route('/api/charts', methods=['POST', 'GET'])
+def api_charts():
+    """
+    POST: 保存图表 { chart_type, plotly_json, title, dataset_id, project_id, analysis_id }
+    GET:  按 dataset_id / project_id 列出图表
+    """
+    if request.method == 'POST':
+        try:
+            payload = request.get_json(force=True) or {}
+            chart = db.save_chart(
+                chart_type=payload.get('chart_type') or 'unknown',
+                plotly_json=payload.get('plotly_json') or {},
+                title=payload.get('title') or '',
+                dataset_id=payload.get('dataset_id'),
+                project_id=payload.get('project_id'),
+                analysis_id=payload.get('analysis_id'),
+            )
+            return jsonify({"status": "success", "data": chart}), 201
+        except Exception as e:
+            logger.error(f"保存图表失败: {e}")
+            return jsonify({"error": str(e)}), 500
+
+    ds_id = request.args.get('dataset_id', type=int)
+    proj_id = request.args.get('project_id', type=int)
+    return jsonify({"status": "success",
+                    "data": db.list_charts(project_id=proj_id, dataset_id=ds_id)})
+
+
 # ─── 主服务启动 ───────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':

@@ -3,6 +3,17 @@
 LabVault — 科研数据管理与统计绘图系统。所有显著更新记录于此。
 格式参考 Keep a Changelog;协作模式:ZCode × Antigravity swarm。
 
+## [0.2.1-alpha] 2026-11-18 第 2 轮(结果工作表落库)
+
+### 新增
+- `POST/GET /api/analyses`、`POST/GET /api/charts` 落库路由(复用 db 层
+  save_analysis/save_chart)
+- 统计页「保存到数据集」、图表页「保存图表」按钮 + 即时反馈
+- `utils/api.js` 新增 `analysesApi`、`chartsApi.save/list`
+
+### 详见
+- docs/announcements/2026-11-18-round2.md
+
 ## [0.2.0-alpha] 2026-11-18 第 1 轮(用户验收修复 + GraphPad 式整合)
 
 ### 修复

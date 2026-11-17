@@ -56,6 +56,26 @@ export default function ChartBuilder({ currentProject }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [dataSourceLabel, setDataSourceLabel] = useState('演示数据');
+  const [savedMsg, setSavedMsg] = useState(null);
+
+  // 保存图表到数据集/项目(Prism 式 Graphs 工作表)—— zcode
+  const handleSaveChart = async () => {
+    if (!plotData.length) return;
+    try {
+      await chartsApi.save({
+        chart_type: chartType,
+        plotly_json: { data: plotData, layout: plotLayout },
+        title: title || '未命名图表',
+        dataset_id: selectedDatasetId ? Number(selectedDatasetId) : null,
+        project_id: selectedProjectId ? Number(selectedProjectId) : null,
+      });
+      setSavedMsg('已保存 ✓');
+      setTimeout(() => setSavedMsg(null), 3000);
+    } catch (e) {
+      setSavedMsg(`保存失败:${e.message}`);
+      setTimeout(() => setSavedMsg(null), 5000);
+    }
+  };
 
   // 初始化加载项目
   useEffect(() => {
@@ -293,7 +313,21 @@ export default function ChartBuilder({ currentProject }) {
             label={dataSourceLabel}
             sx={{ mt: 1 }} />
         </Box>
-        <Stack direction="row" spacing={1}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          {savedMsg && (
+            <Typography variant="caption" color={savedMsg.includes('失败') ? 'error' : 'success.main'}>
+              {savedMsg}
+            </Typography>
+          )}
+          <Button
+            variant="outlined"
+            startIcon={<SaveIcon />}
+            onClick={handleSaveChart}
+            disabled={plotData.length === 0}
+            size="small"
+          >
+            保存图表
+          </Button>
           <Button
             variant="outlined"
             startIcon={<DownloadIcon />}

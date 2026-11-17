@@ -14,7 +14,7 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { loadDataset, ttestFromDataset } from '../utils/datasetStats';
-import { statsApi, datasetsApi, projectsApi } from '../utils/api';
+import { statsApi, datasetsApi, projectsApi, analysesApi } from '../utils/api';
 import StatResults from '../components/StatResults';
 
 // 统计方法定义
@@ -103,11 +103,14 @@ export default function Statistics({ currentProject }) {
   const [error, setError] = useState(null);
   const [results, setResults] = useState(null);
   const [datasetSource, setDatasetSource] = useState(null);
+  const [datasetId, setDatasetId] = useState(null);
+  const [saveState, setSaveState] = useState(null);
 
   // GraphPad 式整合:?dataset=<id> 时自动从数据集载入分组数据 —— zcode
   useEffect(() => {
     const dsId = searchParams.get('dataset');
     if (!dsId) return;
+    setDatasetId(Number(dsId));
     loadDataset(null, dsId)
       .then((ds) => {
         if (!ds) return;
@@ -305,6 +308,25 @@ export default function Statistics({ currentProject }) {
     }
   };
 
+  // 保存分析结果到数据集(Prism 式结果工作表)—— zcode
+  const handleSaveAnalysis = async () => {
+    if (!results) return;
+    try {
+      const projectId = Number(searchParams.get('project')) || currentProject?.id || null;
+      await analysesApi.save({
+        analysis_type: method,
+        params: { ttestType, alpha, g1: ttestG1, g2: ttestG2, dataset_source: datasetSource },
+        result: results,
+        dataset_id: datasetId,
+        project_id: projectId,
+      });
+      setSaveState('已保存到数据集 ✓');
+      setTimeout(() => setSaveState(null), 3000);
+    } catch (e) {
+      setSaveState(`保存失败:${e.message}`);
+    }
+  };
+
   return (
     <Box sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
       {/* 顶部标题栏 */}
@@ -321,7 +343,21 @@ export default function Statistics({ currentProject }) {
               sx={{ mt: 1 }} onDelete={() => setDatasetSource(null)} />
           )}
         </Box>
-        <Stack direction="row" spacing={1}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          {saveState && (
+            <Typography variant="caption" color={saveState.includes('失败') ? 'error' : 'success.main'}>
+              {saveState}
+            </Typography>
+          )}
+          <Button
+            variant="outlined"
+            startIcon={<CheckCircleOutlineIcon />}
+            onClick={handleSaveAnalysis}
+            disabled={!results || !datasetId}
+            size="small"
+          >
+            保存到数据集
+          </Button>
           <Button
             variant="outlined"
             startIcon={<BarChartIcon />}
