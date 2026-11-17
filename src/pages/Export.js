@@ -13,7 +13,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ScienceIcon from '@mui/icons-material/Science';
 import AssignmentIcon from '@mui/icons-material/Assignment';
-import { exportApi, projectsApi, datasetsApi, downloadBlob } from '../utils/api';
+import { exportApi, projectsApi, datasetsApi, downloadBlob, analysesApi, chartsApi } from '../utils/api';
 
 const EXPORT_FORMATS = [
   {
@@ -70,6 +70,53 @@ export default function Export({ currentProject }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
+  const [wbLoading, setWbLoading] = useState(false);
+
+  // 工作簿:当前数据集已保存的分析结果与图表 —— zcode
+  const [workbook, setWorkbook] = useState({ analyses: [], charts: [] });
+  useEffect(() => {
+    if (!selectedDatasetId) {
+      setWorkbook({ analyses: [], charts: [] });
+      return;
+    }
+    analysesApi.list({ dataset_id: selectedDatasetId })
+      .then((res) => setWorkbook((w) => ({ ...w, analyses: res.data || [] })))
+      .catch(() => {});
+    chartsApi.list({ dataset_id: selectedDatasetId })
+      .then((res) => setWorkbook((w) => ({ ...w, charts: res.data || [] })))
+      .catch(() => {});
+  }, [selectedDatasetId, currentDatasetData]);
+
+  // 工作簿聚合 PDF 报告:真实落库的分析 + 图表,每张图一页 —— zcode
+  const handleExportWorkbook = async () => {
+    if (!selectedDatasetId || (!workbook.analyses.length && !workbook.charts.length)) return;
+    setWbLoading(true);
+    setError(null);
+    setSuccessMsg(null);
+    try {
+      const proj = projects.find(p => p.id === selectedProjectId);
+      const dsName = currentDatasetData?.name || '实验数据集';
+      const payload = {
+        title: `LabVault 工作簿报告 — ${dsName}`,
+        project_name: proj ? proj.name : 'LabVault 科研项目',
+        dataset_name: dsName,
+        notes: `工作簿聚合报告:分析结果 ${workbook.analyses.length} 条,图表 ${workbook.charts.length} 张(见后续页面)。`,
+        stats_results: workbook.analyses.map((a) => ({
+          test_type: `${a.type}${a.result?.method ? ` · ${a.result.method}` : ''}`,
+          conclusion: a.result?.interpretation || a.result?.summary?.['结论'] || '',
+          ...(a.result?.summary || {}),
+        })),
+        charts_plotly: workbook.charts.map((c) => ({ title: c.title || c.chart_type, plotly: c.plotly })),
+      };
+      const res = await exportApi.pdf(payload);
+      downloadBlob(res.data, `LabVault_工作簿报告_${dsName}.pdf`);
+      setSuccessMsg(`工作簿报告生成成功(分析 ${workbook.analyses.length} 条 + 图表 ${workbook.charts.length} 张),已开始下载`);
+    } catch (e) {
+      setError(`工作簿报告导出失败:${e.message}`);
+    } finally {
+      setWbLoading(false);
+    }
+  };
 
   // 初始化加载项目
   useEffect(() => {
@@ -142,13 +189,18 @@ export default function Export({ currentProject }) {
               }
             }
           ],
-          table_data: [
-            { '编号': '1', '对照组 (Control)': '12.4', '给药组 (Treatment)': '18.2' },
-            { '编号': '2', '对照组 (Control)': '14.1', '给药组 (Treatment)': '19.5' },
-            { '编号': '3', '对照组 (Control)': '11.8', '给药组 (Treatment)': '17.9' },
-            { '编号': '4', '对照组 (Control)': '13.5', '给药组 (Treatment)': '20.1' },
-            { '编号': '5', '对照组 (Control)': '12.9', '给药组 (Treatment)': '18.8' },
-          ]
+          table_data: (() => {
+            // 真实数据集预览(前 6 行),无数据时回退空表 —— zcode
+            const ds = currentDatasetData;
+            const data = Array.isArray(ds?.data) ? ds.data : [];
+            const cols = Array.isArray(ds?.columns) ? ds.columns : [];
+            if (!data.length || !cols.length) return [];
+            return data.slice(0, 6).map((r, i) => {
+              const row = { '编号': String(i + 1) };
+              cols.forEach((c, ci) => { row[c] = String(Array.isArray(r) ? r[ci] : r?.[c] ?? ''); });
+              return row;
+            });
+          })(),
         };
 
         const res = await exportApi.pdf(payload);
@@ -209,17 +261,29 @@ export default function Export({ currentProject }) {
             一键生成符合国际科研期刊与实验记录归档标准的 PDF 报告、Excel 与矢量图表
           </Typography>
         </Box>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<DownloadIcon />}
-          onClick={handleExport}
-          disabled={loading}
-          size="medium"
-          sx={{ px: 3, fontWeight: 700 }}
-        >
-          {loading ? '正在生成文档…' : '立即导出文档'}
-        </Button>
+        <Stack direction="row" spacing={1.5} alignItems="center">
+          <Button
+            variant="outlined"
+            color="secondary"
+            startIcon={<PictureAsPdfIcon />}
+            onClick={handleExportWorkbook}
+            disabled={wbLoading || (!workbook.analyses.length && !workbook.charts.length)}
+            size="medium"
+          >
+            {wbLoading ? '正在聚合工作簿…' : `导出工作簿报告(${workbook.analyses.length} 分析 + ${workbook.charts.length} 图表)`}
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<DownloadIcon />}
+            onClick={handleExport}
+            disabled={loading}
+            size="medium"
+            sx={{ px: 3, fontWeight: 700 }}
+          >
+            {loading ? '正在生成文档…' : '立即导出文档'}
+          </Button>
+        </Stack>
       </Box>
 
       {successMsg && <Alert severity="success" onClose={() => setSuccessMsg(null)}>{successMsg}</Alert>}

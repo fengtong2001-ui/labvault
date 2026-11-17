@@ -78,7 +78,8 @@ def _export_pdf_matplotlib(
     stats_results: Optional[List[Dict[str, Any]]],
     table_data: Optional[List[Dict[str, Any]]],
     chart_image_base64: Optional[str],
-    notes: str
+    charts_plotly: Optional[List[Dict[str, Any]]] = None,
+    notes: str = ""
 ) -> io.BytesIO:
     """使用 Matplotlib 生成高质量科学 PDF 报告（ReportLab 未安装时的备选方案）"""
     import matplotlib
@@ -180,6 +181,29 @@ def _export_pdf_matplotlib(
             pdf.savefig(fig2, bbox_inches='tight')
             plt.close(fig2)
 
+        # Page 3+: 工作簿已保存图表,每张一页(kaleido 渲染)—— zcode
+        for idx, ch in enumerate(charts_plotly or []):
+            try:
+                png_bytes = export_chart_image(
+                    chart_plotly_json=ch.get('plotly') or ch.get('plotly_json') or {},
+                    format='png', width=1000, height=750
+                )
+                img = Image.open(io.BytesIO(png_bytes))
+                figc, axc = plt.subplots(figsize=(8.5, 11))
+                axc.axis('off')
+                axc.text(0.5, 0.95, f"工作簿图表 {idx + 1}: {ch.get('title', '')}",
+                         fontsize=13, fontweight='bold', ha='center', color='#1A365D')
+                axc.plot([0.05, 0.95], [0.92, 0.92], color='#CBD5E0', lw=1, transform=axc.transAxes)
+                ax_img = figc.add_axes([0.08, 0.18, 0.84, 0.7])
+                ax_img.imshow(img)
+                ax_img.axis('off')
+                axc.text(0.05, 0.03, "LabVault - Confidential - For Research Use Only", fontsize=8, color='#A0AEC0')
+                pdf.savefig(figc, bbox_inches='tight')
+                plt.close(figc)
+            except Exception as chart_err:
+                # 单图渲染失败不阻断整份报告
+                print(f"[export] 工作簿图表 {idx + 1} 渲染失败: {chart_err}")
+
     buffer.seek(0)
     return buffer
 
@@ -193,6 +217,7 @@ def export_pdf_report(
     stats_results: Optional[List[Dict[str, Any]]] = None,
     table_data: Optional[List[Dict[str, Any]]] = None,
     chart_image_base64: Optional[str] = None,
+    charts_plotly: Optional[List[Dict[str, Any]]] = None,
     notes: str = ""
 ) -> io.BytesIO:
     """
@@ -203,6 +228,8 @@ def export_pdf_report(
     :param stats_results: 统计分析结果字典列表
     :param table_data: 样本数据预览列表
     :param chart_image_base64: 前端传入的图表 PNG/JPEG Base64 编码字符串
+    :param charts_plotly: 工作簿已保存图表列表 [{title, plotly}] —— 由 ZCode 添加,
+                          每张图用 kaleido 渲染为独立 PDF 页
     :param notes: 实验备忘录与结论
     :return: BytesIO PDF 字节流
     """
@@ -214,6 +241,7 @@ def export_pdf_report(
             stats_results=stats_results,
             table_data=table_data,
             chart_image_base64=chart_image_base64,
+            charts_plotly=charts_plotly,
             notes=notes
         )
 

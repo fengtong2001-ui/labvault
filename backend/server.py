@@ -400,6 +400,7 @@ def api_export_pdf():
         stats_results = payload.get('stats_results', [])
         table_data = payload.get('table_data', [])
         chart_image_base64 = payload.get('chart_image_base64')
+        charts_plotly = payload.get('charts_plotly')
         notes = payload.get('notes', '')
 
         pdf_stream = export.export_pdf_report(
@@ -409,6 +410,7 @@ def api_export_pdf():
             stats_results=stats_results,
             table_data=table_data,
             chart_image_base64=chart_image_base64,
+            charts_plotly=charts_plotly,
             notes=notes
         )
 
