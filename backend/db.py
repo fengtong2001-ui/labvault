@@ -60,11 +60,18 @@ def init_db():
             dataset_id  INTEGER REFERENCES datasets(id) ON DELETE CASCADE,
             project_id  INTEGER REFERENCES projects(id) ON DELETE CASCADE,
             type        TEXT NOT NULL,  -- ttest, anova, regression 等
+            title       TEXT DEFAULT '',-- 条目标题(工作簿重命名)—— zcode
             params_json TEXT,           -- 分析参数
             result_json TEXT,           -- 分析结果
             created_at  TEXT DEFAULT (datetime('now'))
         )
     """)
+
+    # 轻量迁移:旧库补 analyses.title 列 —— zcode
+    try:
+        cur.execute("ALTER TABLE analyses ADD COLUMN title TEXT DEFAULT ''")
+    except Exception:
+        pass  # 列已存在
 
     # 图表表
     cur.execute("""
@@ -292,14 +299,15 @@ def update_chart(chart_id: int, title: str = None, plotly_json: dict = None) -> 
     return d2
 
 def save_analysis(analysis_type: str, params: dict, result: dict,
-                  dataset_id: int = None, project_id: int = None) -> dict:
+                  dataset_id: int = None, project_id: int = None,
+                  title: str = '') -> dict:
     """保存分析结果"""
     conn = get_conn()
     cur = conn.cursor()
     cur.execute(
-        """INSERT INTO analyses (dataset_id, project_id, type, params_json, result_json)
-           VALUES (?, ?, ?, ?, ?)""",
-        (dataset_id, project_id, analysis_type,
+        """INSERT INTO analyses (dataset_id, project_id, type, title, params_json, result_json)
+           VALUES (?, ?, ?, ?, ?, ?)""",
+        (dataset_id, project_id, analysis_type, title,
          json.dumps(params, ensure_ascii=False),
          json.dumps(result, ensure_ascii=False))
     )
@@ -308,6 +316,23 @@ def save_analysis(analysis_type: str, params: dict, result: dict,
     row = conn.execute("SELECT * FROM analyses WHERE id = ?", (analysis_id,)).fetchone()
     conn.close()
     d = dict(row)
+    d['params'] = json.loads(d.pop('params_json') or '{}')
+    d['result'] = json.loads(d.pop('result_json') or '{}')
+    return d
+
+
+def update_analysis(analysis_id: int, title: str = None) -> dict | None:
+    """更新分析结果标题(由 ZCode 添加:工作簿重命名)"""
+    conn = get_conn()
+    row = conn.execute("SELECT * FROM analyses WHERE id = ?", (analysis_id,)).fetchone()
+    if not row:
+        conn.close()
+        return None
+    conn.execute("UPDATE analyses SET title = ? WHERE id = ?", (title, analysis_id))
+    conn.commit()
+    out = conn.execute("SELECT * FROM analyses WHERE id = ?", (analysis_id,)).fetchone()
+    conn.close()
+    d = dict(out)
     d['params'] = json.loads(d.pop('params_json') or '{}')
     d['result'] = json.loads(d.pop('result_json') or '{}')
     return d

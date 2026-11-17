@@ -830,10 +830,23 @@ export default function DataTable({ currentProject }) {
                   >
                     <Chip size="small" color="secondary" variant="outlined" label="析" sx={{ minWidth: 32 }} />
                     <Typography variant="body2">
-                      {a.type}{a.result?.method ? ` · ${a.result.method}` : ''}
+                      {a.title || `${a.type}${a.result?.method ? ` · ${a.result.method}` : ''}`}
                       {a.result?.summary?.结论 ? ` · ${a.result.summary.结论}` : ''}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">{a.created_at}</Typography>
+                    <Tooltip title="重命名分析">
+                      <IconButton size="small" onClick={(e) => {
+                        e.stopPropagation();
+                        const t = window.prompt('分析条目新标题:', a.title || `${a.type} · ${a.result?.method || ''}`);
+                        if (t && t.trim() && t.trim() !== a.title) {
+                          analysesApi.rename(a.id, t.trim())
+                            .then(() => { setSnackbar({ open: true, message: '分析已重命名', severity: 'success' }); refreshWorkbook(selectedDatasetId); })
+                            .catch((err) => setSnackbar({ open: true, message: `重命名失败: ${err.message}`, severity: 'error' }));
+                        }
+                      }}>
+                        <EditIcon sx={{ fontSize: 15 }} />
+                      </IconButton>
+                    </Tooltip>
                     <Button
                       size="small" variant="outlined" color="secondary"
                       startIcon={<BarChartIcon />}

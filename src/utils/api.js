@@ -159,6 +159,9 @@ export const analysesApi = {
 
   /** 删除分析结果 —— zcode */
   delete: (id) => api.delete(`/api/analyses/${id}`),
+
+  /** 重命名分析结果 —— zcode */
+  rename: (id, title) => api.put(`/api/analyses/${id}`, { title }),
 };
 
 // ─────────────────────────────────────────────

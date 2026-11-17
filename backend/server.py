@@ -508,6 +508,7 @@ def api_analyses():
                 result=payload.get('result') or {},
                 dataset_id=payload.get('dataset_id'),
                 project_id=payload.get('project_id'),
+                title=payload.get('title') or '',
             )
             return jsonify({"status": "success", "data": analysis}), 201
         except Exception as e:
@@ -518,6 +519,20 @@ def api_analyses():
     proj_id = request.args.get('project_id', type=int)
     return jsonify({"status": "success",
                     "data": db.list_analyses(project_id=proj_id, dataset_id=ds_id)})
+
+
+@app.route('/api/analyses/<int:analysis_id>', methods=['PUT'])
+def api_rename_analysis(analysis_id: int):
+    """重命名分析结果 —— 由 ZCode 添加(工作簿重命名)"""
+    try:
+        payload = request.get_json(force=True) or {}
+        analysis = db.update_analysis(analysis_id, title=payload.get('title'))
+        if not analysis:
+            return jsonify({"error": "分析结果不存在"}), 404
+        return jsonify({"status": "success", "data": analysis})
+    except Exception as e:
+        logger.error(f"重命名分析结果失败: {e}")
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/api/analyses/<int:analysis_id>', methods=['DELETE'])
