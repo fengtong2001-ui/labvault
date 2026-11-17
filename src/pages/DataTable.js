@@ -872,7 +872,7 @@ export default function DataTable({ currentProject, isDark = false }) {
                   onClick={() => setViewChart(c)} sx={{ cursor: 'pointer', borderRadius: 1, '&:hover': { bgcolor: 'action.hover' } }}
                 >
                   <Chip size="small" color="primary" variant="outlined" label="图" sx={{ minWidth: 32 }} />
-                  <Typography variant="body2">{c.title || c.chart_type}</Typography>
+                  <Typography variant="body2" noWrap sx={{ maxWidth: 260 }}>{c.title || c.chart_type}</Typography>
                   <Typography variant="caption" color="text.secondary">
                     [{c.chart_type}] {c.created_at}
                   </Typography>

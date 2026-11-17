@@ -140,23 +140,28 @@ def _export_pdf_matplotlib(
         pdf.savefig(fig, bbox_inches='tight')
         plt.close(fig)
 
-        # Page 2: 数据预览(独立成页,列宽按内容自适应)—— zcode
+        # Page 2: 数据预览(独立成页,列宽自适应;超过 8 列截断并注明)—— zcode
         if table_data and len(table_data) > 0:
             figp, axp = plt.subplots(figsize=(8.5, 11))
             axp.axis('off')
             df_p = pd.DataFrame(table_data)
+            shown_cols = list(df_p.columns)[:8]
+            truncated = len(df_p.columns) > 8
             axp.text(0.5, 0.95, "数据预览 (Data Preview)", fontsize=16, fontweight='bold',
                      ha='center', color='#1A365D')
-            axp.text(0.5, 0.92, f"共 {len(table_data)} 行 × {len(df_p.columns)} 列,此处展示前 8 行",
-                     fontsize=10, ha='center', color='#4A5568')
+            hint = f"共 {len(table_data)} 行 × {len(df_p.columns)} 列,此处展示前 8 行"
+            if truncated:
+                hint += f"(其余 {len(df_p.columns) - 8} 列略)"
+            axp.text(0.5, 0.92, hint, fontsize=10, ha='center', color='#4A5568')
             axp.plot([0.05, 0.95], [0.90, 0.90], color='#CBD5E0', lw=1, transform=axp.transAxes)
 
-            preview_cells = [list(df_p.columns)]
+            preview_cells = [shown_cols]
             for _, r in df_p.head(8).iterrows():
-                preview_cells.append([str(r[c])[:14] for c in df_p.columns])
-            n_cols = max(1, len(df_p.columns))
+                preview_cells.append([str(r[c])[:14] for c in shown_cols])
+            n_cols = max(1, len(shown_cols))
             col_w = min(0.9 / n_cols, 0.25)
             t_prev = axp.table(cellText=preview_cells, loc='center',
+                               colWidths=[col_w] * n_cols,
                                bbox=[0.05, 0.35, 0.9, 0.45])
             t_prev.auto_set_font_size(False)
             t_prev.set_fontsize(8)
