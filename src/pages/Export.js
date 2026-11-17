@@ -208,28 +208,30 @@ export default function Export({ currentProject }) {
         downloadBlob(res.data, `${reportTitle || 'LabVault_Report'}.pdf`);
         setSuccessMsg('PDF 报告生成成功，已开始下载');
       } else if (selectedFormat === 'excel') {
+        // 真实数据 + 工作簿已保存分析(zcode;此前为写死演示数据)
+        const ds = currentDatasetData;
+        const cols = Array.isArray(ds?.columns) ? ds.columns : [];
+        const data = Array.isArray(ds?.data) ? ds.data : [];
+        const records = data.map((r) => {
+          const row = {};
+          cols.forEach((c, ci) => { row[c] = Array.isArray(r) ? r[ci] : r?.[c] ?? ''; });
+          return row;
+        });
         const payload = {
           name: dsName,
-          data: [
-            { 'Concentration (nM)': 0.1, 'Control': 98.5, 'Treated': 85.2 },
-            { 'Concentration (nM)': 1.0, 'Control': 97.2, 'Treated': 62.1 },
-            { 'Concentration (nM)': 10.0, 'Control': 96.0, 'Treated': 25.4 },
-            { 'Concentration (nM)': 100.0, 'Control': 94.8, 'Treated': 5.8 },
-          ],
-          analyses: [
-            { 'Method': 'Welch t-test', 't_stat': -7.62, 'p_value': '0.000007', 'Significance': '***' }
-          ],
-          descriptive: {
-            'Control_Mean': 96.6,
-            'Control_SD': 1.55,
-            'Treated_Mean': 44.6,
-            'Treated_SD': 37.1
-          }
+          data: records,
+          analyses: workbook.analyses.map((a) => ({
+            test_type: `${a.type}${a.result?.method ? ` · ${a.result.method}` : ''}`,
+            conclusion: a.result?.interpretation || a.result?.summary?.['结论'] || '',
+            p_value_fmt: a.result?.summary?.['p 值'] || '',
+            significant: a.result?.summary?.['是否显著'] || '',
+            t_statistic: a.result?.summary?.['统计量 t'] ?? '',
+          })),
         };
 
         const res = await exportApi.excel(payload);
         downloadBlob(res.data, `${dsName || 'Data'}_Export.xlsx`);
-        setSuccessMsg('Excel 结构化工作簿生成成功，已开始下载');
+        setSuccessMsg(`Excel 结构化工作簿生成成功(${records.length} 行数据 + ${payload.analyses.length} 条分析),已开始下载`);
       } else if (selectedFormat === 'svg') {
         const payload = {
           format: 'svg',
