@@ -13,13 +13,14 @@ import SaveIcon from '@mui/icons-material/Save';
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import EditIcon from '@mui/icons-material/Edit';
+import DownloadIcon from '@mui/icons-material/Download';
 import CalculateIcon from '@mui/icons-material/Calculate';
 import ScienceIcon from '@mui/icons-material/Science';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import { useNavigate } from 'react-router-dom';
-import { datasetsApi, projectsApi, importApi, analysesApi, chartsApi } from '../utils/api';
+import { datasetsApi, projectsApi, importApi, analysesApi, chartsApi, downloadBlob } from '../utils/api';
 import { mean, sd, classifyColumns, groupValues } from '../utils/datasetStats';
 import ChartViewer from '../components/ChartViewer';
 import DataImport from '../components/DataImport';
@@ -192,6 +193,26 @@ export default function DataTable({ currentProject }) {
   const handleRegenerateChart = (e, c) => {
     e.stopPropagation();
     navigate(`/charts?dataset=${selectedDatasetId}&project=${selectedProjectId}&type=${c.chart_type}`);
+  };
+
+  // 导出 JSON(可复现记录:参数+结果/图规格齐全,可离线复现)—— zcode
+  const exportAnalysisJson = (a) => {
+    const payload = {
+      _export: 'labvault-analysis@v1', id: a.id, type: a.type,
+      title: a.title || a.result?.method || '', params: a.params, result: a.result,
+      dataset_id: a.dataset_id, project_id: a.project_id, created_at: a.created_at,
+    };
+    downloadBlob(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }),
+      `labvault-analysis-${a.id}.json`);
+  };
+  const exportChartJson = (c) => {
+    const payload = {
+      _export: 'labvault-chart@v1', id: c.id, chart_type: c.chart_type,
+      title: c.title || c.chart_type, plotly: c.plotly,
+      dataset_id: c.dataset_id, created_at: c.created_at,
+    };
+    downloadBlob(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }),
+      `labvault-chart-${c.id}.json`);
   };
 
   // 状态与弹窗
@@ -809,6 +830,11 @@ export default function DataTable({ currentProject }) {
                       <EditIcon sx={{ fontSize: 15 }} />
                     </IconButton>
                   </Tooltip>
+                  <Tooltip title="导出 JSON(可复现图规格)">
+                    <IconButton size="small" onClick={(e) => { e.stopPropagation(); exportChartJson(c); }}>
+                      <DownloadIcon sx={{ fontSize: 15 }} />
+                    </IconButton>
+                  </Tooltip>
                   <Tooltip title="以此数据集与图型重新生成">
                     <IconButton size="small" onClick={(e) => handleRegenerateChart(e, c)}>
                       <RefreshIcon sx={{ fontSize: 15 }} />
@@ -834,6 +860,11 @@ export default function DataTable({ currentProject }) {
                       {a.result?.summary?.结论 ? ` · ${a.result.summary.结论}` : ''}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">{a.created_at}</Typography>
+                    <Tooltip title="导出 JSON(可复现分析记录)">
+                      <IconButton size="small" onClick={(e) => { e.stopPropagation(); exportAnalysisJson(a); }}>
+                        <DownloadIcon sx={{ fontSize: 15 }} />
+                      </IconButton>
+                    </Tooltip>
                     <Tooltip title="重命名分析">
                       <IconButton size="small" onClick={(e) => {
                         e.stopPropagation();
