@@ -3,6 +3,15 @@
 LabVault — 科研数据管理与统计绘图系统。所有显著更新记录于此。
 格式参考 Keep a Changelog;协作模式:ZCode × Antigravity swarm。
 
+## [0.2.27-alpha] 2026-11-18 第 28 轮(console 走查 + 工具栏换行)
+
+### 走查/打磨
+- 生产构建六路由 console 走查:0 JS 错误、无空白渲染
+- 数据表格工具栏 flexWrap,窄窗口不再溢出
+
+### 详见
+- docs/announcements/2026-11-18-round28.md
+
 ## [0.2.26-alpha] 2026-11-18 第 27 轮(工作簿按钮顺序统一)
 
 ### 打磨
